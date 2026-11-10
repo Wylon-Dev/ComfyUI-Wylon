@@ -1,7 +1,7 @@
 {
   "label": "Wylon H3 · First / last frame",
   "order": 61,
-  "description": "Wylon hosted video with native audio. 5–15 seconds, 768p. Reference videos require public HTTPS URLs; local ComfyTV video outputs cannot be used directly.",
+  "description": "Wylon H3 video, fixed MiniMax-H3. Text and optional first/last frames; 5–15 seconds, 768p. Submits an async task and waits for the result.",
   "result": {
     "type": "ui_save_url",
     "node": "2"

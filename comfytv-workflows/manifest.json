@@ -1,11 +1,11 @@
 {
   "name": "Wylon-ComfyTV-Workflows",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "distribution": "open-source",
   "compatibility": {
     "comfyui": "0.44.0",
     "comfytv": "1.13.1",
-    "comfyui_wylon": "0.2.0",
+    "comfyui_wylon": "0.3.0",
     "same_comfyui_server_required": true
   },
   "installation_root": "<ComfyUI>/user/comfytv/workflows",

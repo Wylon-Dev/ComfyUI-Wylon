@@ -1,7 +1,7 @@
 {
   "label": "Wylon H3 Ref2VA · References",
   "order": 62,
-  "description": "Wylon hosted video with native audio. 5–15 seconds, 768p. Reference videos require public HTTPS URLs; local ComfyTV video outputs cannot be used directly.",
+  "description": "Wylon Ref2VA video, fixed MiniMax-H3-Ref2VA. Native image/audio references and a dedicated Reference Video URL source; 5–15 seconds, 768p. Submits an async task and waits for the result.",
   "result": {
     "type": "ui_save_url",
     "node": "2"
@@ -28,9 +28,6 @@
         "from": "option:seed",
         "default": "random_int31",
         "cast": "int"
-      },
-      "video_urls": {
-        "from": "literal:"
       }
     },
     "10": {
@@ -91,6 +88,11 @@
     "32": {
       "audio": {
         "from": "upstream_audio:annotated[2]"
+      }
+    },
+    "33": {
+      "urls": {
+        "from": "literal:"
       }
     }
   },

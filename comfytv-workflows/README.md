@@ -3,7 +3,7 @@
 <h1>Wylon ComfyTV Workflows</h1>
 <p><strong>Ready-to-import Wylon image and video workflows for ComfyTV.</strong></p>
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue)](manifest.json)
 [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![ComfyTV](https://img.shields.io/badge/ComfyTV-1.13.1-222222)](https://github.com/jtydhr88/ComfyTV/tree/v1.13.1)
 
@@ -11,18 +11,18 @@
 
 </div>
 
-Use Qwen image generation and MiniMax H3 video generation in ComfyTV stages. This optional pack supplies **five ComfyUI graphs and five matching ComfyTV presets**, with stage prompt/seed bindings, native saved-media results and optional reference-branch pruning.
+Use Qwen image generation and MiniMax H3 video generation in ComfyTV stages. This optional pack supplies **five ComfyUI graphs and five matching ComfyTV presets**, with stage prompt and video-seed bindings, native saved-media results and optional reference-branch pruning.
 
 ## 🧩 What to install
 
 | Component | Role | Installation |
 | --- | --- | --- |
-| [**ComfyUI-Wylon**](https://github.com/wylon-cloud/comfyui-wylon#-install) | Python generation/resume nodes, API key setup and task panel | Install the plugin in `ComfyUI/custom_nodes/ComfyUI-Wylon/` |
+| [**ComfyUI-Wylon**](https://github.com/wylon-cloud/comfyui-wylon#-install) | Python generation/result-retrieval nodes, API key setup and task panel | Install the plugin in `ComfyUI/custom_nodes/ComfyUI-Wylon/` |
 | **This workflow pack** | ComfyTV graphs and their `_preset.json` bindings | Copy the paired JSON files into ComfyTV's user workflow folders |
 
 **ComfyTV and ComfyUI-Wylon must run on the same ComfyUI server.** This pack reuses that server's nodes and credentials. It needs no additional node copies, npm installation or local model weights.
 
-Host versions: **ComfyUI v0.44.0 + ComfyTV v1.13.1 + ComfyUI-Wylon v0.2.0**. The [manifest](manifest.json) records the file pairs, node IDs and compatibility details.
+Host versions: **ComfyUI v0.44.0 + ComfyTV v1.13.1 + ComfyUI-Wylon v0.3.0**. The [manifest](manifest.json) records the file pairs, node IDs and compatibility details.
 
 | Platform | ComfyUI installation method |
 | --- | --- |
@@ -57,7 +57,7 @@ Copy-Item .\workflows\video\*.json "$ComfyUIRoot\user\comfytv\workflows\video\"
 
 Replace `$ComfyUIRoot` with the real host path; for example `C:\AI\ComfyUI_windows_portable\ComfyUI` for portable.
 
-For a local build, run `npm run package` from the **repository root** using the developer toolchain (Node.js 22.23.x + npm and Python), or invoke `python scripts/package.py` with your selected Python. It produces the separate `Wylon-ComfyTV-Workflows-0.2.0.zip`; after extraction, the pack root is `Wylon-ComfyTV-Workflows`. Apply the same folder-copy steps above. Build details are in [CONTRIBUTING](https://github.com/wylon-cloud/comfyui-wylon/blob/main/CONTRIBUTING.md).
+For a local build, run `npm run package` from the **repository root** using the developer toolchain (Node.js 22.23.x + npm and Python), or invoke `python scripts/package.py` with your selected Python. It produces the separate `Wylon-ComfyTV-Workflows-0.3.0.zip`; after extraction, the pack root is `Wylon-ComfyTV-Workflows`. Apply the same folder-copy steps above. Build details are in [CONTRIBUTING](https://github.com/wylon-cloud/comfyui-wylon/blob/main/CONTRIBUTING.md).
 
 The workflow pack belongs in ComfyTV's user workflow folders. Only the ComfyUI-Wylon plugin belongs in `custom_nodes`.
 
@@ -88,23 +88,26 @@ The first/last-frame preset removes the last-frame branch when the second image 
 
 | Setting | Behavior |
 | --- | --- |
-| Prompt / seed | Stage prompt → `prompt`; stage seed → `seed`, with a random int31 when unset |
-| Image mode / size | Keep `mode=async` for seed support and recovery; choose a model-supported size or `server_default` |
+| Prompt / video seed | Stage prompt → `prompt`; video stage seed → `seed`, with a random int31 when unset; image stages do not bind seed |
+| Image generation / size | Synchronous `images/generations`, no task ID; choose a model-supported size or `server_default` |
 | Video duration | Stage `duration_s` → **5–15 whole seconds** |
 | Video ratio | Stage `aspect_ratio`; default `16:9`; also supports `21:9`, `4:3`, `1:1`, `3:4`, `9:16` |
 | Video resolution | Fixed at **768p**, independently of ComfyTV's display resolution selector |
-| Advanced fields | Edit negative prompts and `extra_parameters` JSON in the workflow/sidebar; default JSON is `{}` |
+| Negative prompt | Edit `negative_prompt` in the workflow/sidebar |
 
-- **H3** (`MiniMaxAI/MiniMax-H3`) supports text and dedicated first/last-frame roles. **Ref2VA** (`MiniMaxAI/MiniMax-H3-Ref2VA`) supports reference images, video and audio. Presets select the corresponding model; changing it also requires matching input roles.
+- **H3** (`MiniMaxAI/MiniMax-H3`) supports text and dedicated first/last-frame roles. **Ref2VA** (`MiniMaxAI/MiniMax-H3-Ref2VA`) supports reference images, video and audio. Each node is fixed to its corresponding model and has no model selector.
 - Ref2VA accepts at most **9 images, 3 video URLs and 3 audio inputs**. An image or video is required; audio alone is unsupported. It does not accept the dedicated first/last-frame roles.
-- **Reference videos use public HTTPS URLs reachable by Wylon.** Edit `video_urls` in the ComfyTV sidebar as a literal, one URL per line; the supplied binding starts as empty `literal:`. A custom stage option may use `option:<your_key>`. Local `/view` links, ComfyTV video wires, uploaded filenames, Base64 and filesystem paths cannot supply a reference video. No automatic upload is provided.
+- **Reference videos use public HTTPS URLs reachable by Wylon.** Edit `urls` on **Wylon Reference Video URL** in the ComfyTV sidebar as a literal, one URL per line (up to three); the supplied binding starts as empty `literal:`. The preset binds this source node, whose dedicated output connects to Ref2VA’s `reference_videos` port. A custom stage option may use `option:<your_key>`. Local `/view` links, ComfyTV video wires, uploaded filenames, Base64 and filesystem paths cannot supply a reference video. No automatic upload is provided.
+- An empty URL source produces an empty reference bundle, allowing image-only references; Ref2VA still requires an image or video. This source only validates URLs: it reads no credentials, downloads/uploads/generates nothing and incurs no generation charge. Native generated `VIDEO` cannot replace the dedicated `WYLON_REFERENCE_VIDEO` connection. Ref2VA has no URL text control.
 - Reference naming in prompts follows the Wylon API. The pack does not translate ComfyTV `@image_N`, `@video_N` or `@audio_N` markers into model tags. Use Wylon reference ordering rules for mixed audio/video inputs.
 
 See the plugin's [media limits and model guide](https://github.com/wylon-cloud/comfyui-wylon/blob/main/docs/USAGE.md#models-and-media) for reference durations, file sizes and supported parameters.
 
+Image generation is synchronous and returns no task ID; it has no mode or seed controls. Video generation uses the asynchronous API and waits for finished media. Nonnegative video seeds within the supported API range are forwarded; `-1` omits seed and the model determines its effect. `control_after_generate` is only the local next-run video-seed policy, never an API parameter.
+
 ## 🔄 Recovery, updates and troubleshooting
 
-Generation POSTs are never retried automatically. Preserve an accepted task ID from **Wylon tasks** or the error, then run **Wylon Resume Image Task** or **Wylon Resume Video Task** in ComfyUI to retrieve that same task. Requeueing a Generate node creates another task and may incur another charge. Stopping local waiting does not cancel cloud work. If creation times out without an ID, check Wylon history and usage before resubmitting.
+Generation POSTs are never retried automatically. For video or a historical asynchronous image task, preserve an accepted task ID from **Wylon tasks** or the error, then run **Wylon Get Image Task Result** or **Wylon Get Video Task Result** in ComfyUI to retrieve that same task. Retrieval uses GET and does not create, restart or cancel cloud tasks. A failed Generate node cannot pass its task ID downstream: copy the panel/error ID manually. The ordinary retrieval examples belong to the plugin, outside this five-pair pack. Requeueing a Generate node sends another generation request and may incur another charge. Stopping local waiting does not cancel cloud work. If creation times out without an ID, check Wylon history and usage before resubmitting.
 
 | Problem | Check |
 | --- | --- |

@@ -26,66 +26,6 @@
           "name": "last_frame",
           "type": "IMAGE",
           "link": null
-        },
-        {
-          "name": "images.image_0",
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "images.image_1",
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "images.image_2",
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "images.image_3",
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "images.image_4",
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "images.image_5",
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "images.image_6",
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "images.image_7",
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "images.image_8",
-          "type": "IMAGE",
-          "link": null
-        },
-        {
-          "name": "audios.audio_0",
-          "type": "AUDIO",
-          "link": null
-        },
-        {
-          "name": "audios.audio_1",
-          "type": "AUDIO",
-          "link": null
-        },
-        {
-          "name": "audios.audio_2",
-          "type": "AUDIO",
-          "link": null
         }
       ],
       "outputs": [
@@ -117,10 +57,7 @@
         "16:9",
         "",
         -1,
-        "fixed",
-        "{}",
-        "",
-        "MiniMaxAI/MiniMax-H3"
+        "fixed"
       ]
     },
     {

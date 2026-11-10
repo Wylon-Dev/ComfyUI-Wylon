@@ -2,7 +2,7 @@
 
 [简体中文](API_CONVENTIONS.zh-CN.md) · [Usage](USAGE.md)
 
-ComfyUI-Wylon 0.2.0 follows the supplied service conventions for its own HTTP API. Names and JSON fields use snake_case and US English; collections are plural. No database, Kafka, object store or gRPC service is introduced.
+ComfyUI-Wylon 0.3.0 follows the supplied service conventions for its own HTTP API. Names and JSON fields use snake_case and US English; collections are plural. No database, Kafka, object store or gRPC service is introduced.
 
 ## Owned routes
 
@@ -37,7 +37,7 @@ New business codes require registry/documentation review. Clients classify by HT
 
 ## Compatibility exceptions and evolution
 
-ComfyUI-owned routes (`/view`, websocket transport), stable Wylon node IDs, IMAGE/VIDEO/AUDIO ports, workflow fields, and upstream Wylon/SDK field names, model IDs and status spellings retain their contracts. Upstream statuses such as `cancelled` and `downloaded` are not renamed to new owned enum values. No new owned public enum is introduced. Wylon async generation/resume follows the provider task protocol; this plugin does not invent an operation service.
+ComfyUI-owned routes (`/view`, websocket transport), stable Wylon node IDs, IMAGE/VIDEO/AUDIO ports, workflow fields, and upstream Wylon/SDK field names, model IDs and status spellings retain their contracts. Upstream statuses such as `cancelled` and `downloaded` are not renamed to new owned enum values. No new owned public enum is introduced. Wylon asynchronous video generation and existing-task retrieval follow the provider task protocol; this plugin does not invent an operation service.
 
 The six existing `/wylon/*` method/path combinations keep their original shapes, including legacy POST configuration and status codes. All carry `Deprecation: true`, `Sunset: Mon, 10 May 2027 00:00:00 GMT`, and a successor Link. Sunset is the earliest date, not automatic removal: aliases stay for at least six months after the 0.2.0 announcement and two minor releases, and can be removed only in a new major. A delayed release must move that earliest date forward.
 

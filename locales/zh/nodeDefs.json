@@ -1,0 +1,274 @@
+{
+  "WylonGenerateImage": {
+    "display_name": "Wylon 生成图片",
+    "description": "通过同步图片 API 生成、等待并下载一张图片，不返回任务 ID。",
+    "inputs": {
+      "model": {
+        "name": "模型",
+        "tooltip": "选择 Wylon 模型；API 模型 ID 不变。"
+      },
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "描述要生成的图片。"
+      },
+      "size": {
+        "name": "图片尺寸",
+        "tooltip": "尺寸预设随模型变化；server_default 表示不发送尺寸。"
+      },
+      "negative_prompt": {
+        "name": "负面提示词",
+        "tooltip": "可选负面提示词，是否生效取决于模型。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "图片",
+        "tooltip": "Wylon 生成并下载的本地媒体。"
+      },
+      "1": {
+        "name": "任务 ID",
+        "tooltip": "同步图片生成不返回任务 ID，此输出保持为空以兼容工作流。"
+      },
+      "2": {
+        "name": "本地文件路径",
+        "tooltip": "下载结果的本地路径。"
+      }
+    }
+  },
+  "WylonH3Video": {
+    "display_name": "Wylon H3 视频（文字／首尾帧）",
+    "description": "使用固定 MiniMaxAI/MiniMax-H3 提交视频任务并等待结果，支持纯文字或首尾帧。",
+    "inputs": {
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "描述画面、动作、运镜和声音。"
+      },
+      "duration": {
+        "name": "时长（秒）",
+        "tooltip": "视频时长，5–15 秒。"
+      },
+      "resolution": {
+        "name": "分辨率",
+        "tooltip": "固定视频分辨率：768p。"
+      },
+      "ratio": {
+        "name": "宽高比",
+        "tooltip": "server_default 表示不发送比例；adaptive 需要首帧或尾帧，并且不发送比例。"
+      },
+      "negative_prompt": {
+        "name": "负面提示词",
+        "tooltip": "可选负面提示词，是否生效取决于模型。"
+      },
+      "seed": {
+        "name": "随机种子",
+        "tooltip": "-1 表示不发送 seed；非负值会发送到视频 API。可复现性取决于模型。"
+      },
+      "control_after_generate": {
+        "name": "下次运行种子策略",
+        "tooltip": "仅在本地调整下次排队运行的种子，不会作为字段发送给 Wylon。"
+      },
+      "first_frame": {
+        "name": "首帧",
+        "tooltip": "仅 H3：连接一张图片。"
+      },
+      "last_frame": {
+        "name": "尾帧",
+        "tooltip": "仅 H3：连接一张图片；支持单独尾帧或首尾帧。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "视频",
+        "tooltip": "Wylon 生成并下载的本地媒体。"
+      },
+      "1": {
+        "name": "任务 ID",
+        "tooltip": "已有异步视频任务 ID，可用于再次获取该任务结果。"
+      },
+      "2": {
+        "name": "本地文件路径",
+        "tooltip": "下载结果的本地路径。"
+      }
+    }
+  },
+  "WylonRef2VAVideo": {
+    "display_name": "Wylon Ref2VA 视频（参考素材）",
+    "description": "使用固定 MiniMaxAI/MiniMax-H3-Ref2VA 提交任务并等待结果。连接参考图片、专用参考视频链接或参考音频；音频须搭配图片或视频。",
+    "inputs": {
+      "prompt": {
+        "name": "提示词",
+        "tooltip": "描述画面、动作、运镜和声音。"
+      },
+      "duration": {
+        "name": "时长（秒）",
+        "tooltip": "视频时长，5–15 秒。"
+      },
+      "resolution": {
+        "name": "分辨率",
+        "tooltip": "固定视频分辨率：768p。"
+      },
+      "ratio": {
+        "name": "宽高比",
+        "tooltip": "视频宽高比；server_default 表示不发送比例。"
+      },
+      "negative_prompt": {
+        "name": "负面提示词",
+        "tooltip": "可选负面提示词，是否生效取决于模型。"
+      },
+      "seed": {
+        "name": "随机种子",
+        "tooltip": "-1 表示不发送 seed；非负值会发送到视频 API。可复现性取决于模型。"
+      },
+      "control_after_generate": {
+        "name": "下次运行种子策略",
+        "tooltip": "仅在本地调整下次排队运行的种子，不会作为字段发送给 Wylon。"
+      },
+      "images": {
+        "name": "参考图片",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "audios": {
+        "name": "参考音频",
+        "tooltip": "最多 3 段参考音频，总长不超过 15 秒；须同时提供参考图片或视频。"
+      },
+      "images_image": {
+        "name": "参考图片",
+        "tooltip": "连接一张参考图片。"
+      },
+      "audios_audio": {
+        "name": "参考音频",
+        "tooltip": "最多 3 段参考音频，总长不超过 15 秒；须同时提供参考图片或视频。"
+      },
+      "images_image_0": {
+        "name": "参考图片 1",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "images_image_1": {
+        "name": "参考图片 2",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "images_image_2": {
+        "name": "参考图片 3",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "images_image_3": {
+        "name": "参考图片 4",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "images_image_4": {
+        "name": "参考图片 5",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "images_image_5": {
+        "name": "参考图片 6",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "images_image_6": {
+        "name": "参考图片 7",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "images_image_7": {
+        "name": "参考图片 8",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "images_image_8": {
+        "name": "参考图片 9",
+        "tooltip": "仅 Ref2VA：最多连接 9 张参考图片。"
+      },
+      "audios_audio_0": {
+        "name": "参考音频 1",
+        "tooltip": "最多 3 段参考音频，总长不超过 15 秒；须同时提供参考图片或视频。"
+      },
+      "audios_audio_1": {
+        "name": "参考音频 2",
+        "tooltip": "最多 3 段参考音频，总长不超过 15 秒；须同时提供参考图片或视频。"
+      },
+      "audios_audio_2": {
+        "name": "参考音频 3",
+        "tooltip": "最多 3 段参考音频，总长不超过 15 秒；须同时提供参考图片或视频。"
+      },
+      "reference_videos": {
+        "name": "参考视频",
+        "tooltip": "连接“Wylon 参考视频链接”的专用输出，最多 3 个公网 HTTPS 视频网址；空值表示无参考视频。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "视频",
+        "tooltip": "Wylon 生成并下载的本地媒体。"
+      },
+      "1": {
+        "name": "任务 ID",
+        "tooltip": "已有异步视频任务 ID，可用于再次获取该任务结果。"
+      },
+      "2": {
+        "name": "本地文件路径",
+        "tooltip": "下载结果的本地路径。"
+      }
+    }
+  },
+  "WylonResumeImageTask": {
+    "display_name": "Wylon 获取已有图片任务结果",
+    "description": "查询历史已有异步图片任务、等待完成并下载结果。可独立运行；重复执行可能保存另一份结果，不会创建新任务。",
+    "inputs": {
+      "task_id": {
+        "name": "已有任务 ID",
+        "tooltip": "查询并下载对应媒体类型的已有任务，不会创建新的生成任务。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "图片",
+        "tooltip": "Wylon 生成并下载的本地媒体。"
+      },
+      "1": {
+        "name": "任务 ID",
+        "tooltip": "历史已有异步图片任务 ID，可用于再次获取原任务结果。"
+      },
+      "2": {
+        "name": "本地文件路径",
+        "tooltip": "下载结果的本地路径。"
+      }
+    }
+  },
+  "WylonResumeVideoTask": {
+    "display_name": "Wylon 获取已有视频任务结果",
+    "description": "查询已有视频任务、等待完成并下载结果。可独立运行；重复执行可能保存另一份结果，不会创建新的生成任务。",
+    "inputs": {
+      "task_id": {
+        "name": "已有任务 ID",
+        "tooltip": "查询并下载对应媒体类型的已有任务，不会创建新的生成任务。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "视频",
+        "tooltip": "Wylon 生成并下载的本地媒体。"
+      },
+      "1": {
+        "name": "任务 ID",
+        "tooltip": "已有异步视频任务 ID，可用于再次获取该任务结果。"
+      },
+      "2": {
+        "name": "本地文件路径",
+        "tooltip": "下载结果的本地路径。"
+      }
+    }
+  },
+  "WylonReferenceVideoURL": {
+    "display_name": "Wylon 参考视频链接",
+    "description": "将最多 3 个公网 HTTPS 视频网址转换为 Ref2VA 专用参考视频输入。每行一个；留空表示无参考视频。不下载、不生成，也不读取 API Key。",
+    "inputs": {
+      "urls": {
+        "name": "视频网址",
+        "tooltip": "每行一个公网 HTTPS 视频网址，最多 3 个；留空表示无参考视频。"
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "参考视频",
+        "tooltip": "经过验证的专用参考视频值，只连接到 Ref2VA 的参考视频输入，不是生成的视频。"
+      }
+    }
+  }
+}

@@ -16,7 +16,7 @@ Windows 10/11 x64 与 macOS 的安装方式见 [README 平台表](../README.zh-C
 
 ## 密钥与宿主访问
 
-打开 **Wylon → Wylon tasks / Wylon 任务**或节点底部的 **Wylon 配置 / API Key**，应用本次服务进程的 Key，可选“记住本机（保存到 ComfyUI 用户目录的私有配置）”。选择保存也会设置会话 Key。连接验证查询模型列表，不生成媒体，也不证明账户可调用所有生成模型。
+打开 **Wylon → Wylon tasks / Wylon 任务**或生成/获取结果节点底部的 **Wylon 配置 / API Key**，应用本次服务进程的 Key，可选“记住本机（保存到 ComfyUI 用户目录的私有配置）”。选择保存也会设置会话 Key。连接验证查询模型列表，不生成媒体，也不证明账户可调用所有生成模型。
 
 优先级为会话、本机保存、`WYLON_API_KEY`。会话指 ComfyUI 进程生命周期，不是浏览器标签页或独立登录。能操作该宿主的用户可使用已配置账户并修改配置；同源检查不提供用户鉴权或账户隔离。请使用可信宿主及适当的网络/访问控制。
 
@@ -51,11 +51,13 @@ $env:WYLON_API_KEY = '你的 Key'
 
 ## 模型与媒体
 
-- **Wylon Generate Image**（`WylonGenerateImage`）：`Qwen/Qwen-Image-2512` 或 `Qwen/Qwen-Image-2.1`，输出 `IMAGE`、`task_id`、`file_path`。异步可恢复；同步没有任务 ID/恢复能力，并忽略节点 seed 控件。
-- **Wylon H3 Video**（`WylonH3Video`）默认 `MiniMaxAI/MiniMax-H3`；**Wylon Ref2VA Video**（`WylonRef2VAVideo`）默认 `MiniMaxAI/MiniMax-H3-Ref2VA`。二者模型选项相同，输出 `VIDEO`、`task_id`、`file_path`。
-- **Wylon Resume Image Task**（`WylonResumeImageTask`）和 **Wylon Resume Video Task**（`WylonResumeVideoTask`）：查询/下载对应媒体类型的已有任务，不创建生成。
+- **Wylon Generate Image**（`WylonGenerateImage`）：`Qwen/Qwen-Image-2512` 或 `Qwen/Qwen-Image-2.1`，输出 `IMAGE`、`task_id`、`file_path`。固定使用同步 `POST /v1/images/generations`。仅有模型、提示词、尺寸、负向提示词四项控件。返回成品图片，兼容输出 `task_id` 为空；没有模式、种子或种子策略控件，不创建新的异步图片任务。
+- **Wylon H3 Video**（`WylonH3Video`）固定 `MiniMaxAI/MiniMax-H3`；**Wylon Ref2VA Video**（`WylonRef2VAVideo`）固定 `MiniMaxAI/MiniMax-H3-Ref2VA`。二者均无模型选择器，输出 `VIDEO`、`task_id`、`file_path`。
+- **Wylon 获取已有图片任务结果**（`WylonResumeImageTask`）和 **Wylon 获取已有视频任务结果**（`WylonResumeVideoTask`）：通过 GET 查询/下载对应媒体类型的已有任务，不创建、重启或取消云端任务。可单独运行，也可将原生媒体输出接到下游节点。图片获取支持历史异步图片任务，当前生成图片节点不能创建这类任务。
 
-所选模型决定输入角色。H3 支持文字及可选 `first_frame`/`last_frame` 原生 IMAGE，各一张。Ref2VA 拒绝首尾帧角色，且至少需要参考图片或视频。连接 `image_0` / `audio_0` 后原生 IMAGE/AUDIO 端口按需增加；`video_urls` 每行填一个公网 HTTPS URL。参考音频须同时有图片或视频。冲突组合会在提交前给出双语报错，模型不会自动切换。
+两个视频节点仅显示固定模型支持的输入，提交异步任务后等待成品，不提供仅提交节点。H3 支持文字及可选 `first_frame`/`last_frame` 原生 IMAGE，各一张。Ref2VA 拒绝首尾帧角色，且至少需要参考图片或视频。连接 `image_0` / `audio_0` 后原生 IMAGE/AUDIO 端口按需增加；在 **Wylon 参考视频链接**（`WylonReferenceVideoURL`）节点中每行填写一个公网 HTTPS URL，最多三个，将其专用 `reference_video` 输出连接到 Ref2VA 的 `reference_videos` 输入。Ref2VA 的参考音频输入可接原生或第三方节点输出的标准 ComfyUI `AUDIO`。专用 `WYLON_REFERENCE_VIDEO` 是视频参考数据，不能连接到参考音频输入。参考音频仍须同时有图片或视频。冲突组合会在提交前给出清晰的错误提示，固定模型不会切换。
+
+**Wylon 参考视频链接**只校验并封装 URL，不下载、上传或生成媒体，不读取 API Key，也不需要配置按钮。`urls` 为空时输出空参考数据，图像参考工作流仍可运行；Ref2VA 仍要求至少一张参考图片或一个参考视频。专用 `WYLON_REFERENCE_VIDEO` 连线与承载生成结果的原生 `VIDEO` 不同，连接本地视频输出不会自动上传。Ref2VA 没有 URL 文本控件。
 
 视频输出是下载 MP4 支撑的原生 VIDEO，保留音轨，不提前解码全部帧。可接原生 Save Video。使用 VideoHelperSuite 时，先接原生 **Get Video Components**，将 IMAGE、AUDIO、fps 接 VHS Video Combine。无音轨则无音频分量。
 
@@ -70,23 +72,23 @@ $env:WYLON_API_KEY = '你的 Key'
 
 参考视频须为 Wylon 可访问的公网 HTTPS，不含内嵌凭据或片段。没有自动上传服务。本地 MP4、Base64 视频、localhost、局域网/私有地址及 Wylon 获取前已过期的 URL 均不可用。可选 ComfyTV 工作流提供的 URL 同样受限。
 
-生图尺寸按模型选择，`server_default` 省略尺寸。Qwen-Image-2512 提供 1328×1328、1664×928、928×1664、1104×1472、1584×1056。Qwen-Image-2.1 提供 1536×2752、1696×2528、1792×2400、2048×2048、2400×1792、2528×1696、2752×1536。V1 每次生成一张。Seed=-1 省略，生图 seed 仅异步使用。负向提示词和允许的可选字段按接口传递；服务接受不代表每个模型都有对应视觉效果或确定性。
+生图尺寸按模型选择，`server_default` 省略尺寸。Qwen-Image-2512 提供 1328×1328、1664×928、928×1664、1104×1472、1584×1056。Qwen-Image-2.1 提供 1536×2752、1696×2528、1792×2400、2048×2048、2400×1792、2528×1696、2752×1536。V1 每次生成一张。视频 `seed=-1` 表示省略，在 API 支持范围内转发非负视频种子。种子是否影响输出及其效果由模型决定。`control_after_generate` 只调整下次运行的本地视频种子，绝不发送给 Wylon。负向提示词按接口传递，不承诺特定视觉效果。
 
-`extra_parameters` 须为小于 64 KiB 的 JSON 对象。只接受白名单 API 字段，不能覆盖鉴权、模型/路由和核心请求字段。图片兼容字段 `n`、`stream`、`partial_images`、`output_format` 分别限于 1、false、0、png。添加 JSON 字段不会开启 API 未支持的能力。使用高级字段时核对当前 Wylon 契约。
+节点不提供自由 JSON 参数输入。当前仅显示上述已实现控件；官方记录中的其他参数不通过笼统字段透传。
 
 ## 恢复与故障排查
 
-生成 POST 不自动重试。只读状态查询有有限重试与退避，本地轮询最长 15 分钟。异步 ID 返回后，先在 `<ComfyUI 用户目录>/wylon/` 记录，再轮询。记录仅含 ID、媒体类型、模型、状态和时间，不含提示词、输入、凭据或签名素材 URL。
+生成 POST 不自动重试。只读状态查询有有限重试与退避，本地轮询最长 15 分钟。视频任务 ID 返回后，先在 `<ComfyUI 用户目录>/wylon/` 记录，再轮询。记录仅含 ID、媒体类型、模型、状态和时间，不含提示词、输入、凭据或签名素材 URL。
 
-等待中断、超时或下载失败后，从面板或报错复制 ID 到对应 Resume 节点。恢复需要正确账户及尚未过期的结果，可能再下载一份本地文件。停止 ComfyUI/本地等待不会取消云端工作；未提供云端取消操作。创建超时且没有 ID 时，先核查 Wylon 控制台/历史及用量，再明确决定是否重提，避免重复付费。
+视频或已有历史异步图片任务等待中断、超时或下载失败后，从面板或报错复制 ID 到对应获取已有任务结果节点。失败的生成节点不会向下游传递 `task_id`，须手工复制面板/错误中的 ID，再单独运行获取节点。恢复需要正确账户及尚未过期的结果，可能再下载一份本地文件。停止 ComfyUI/本地等待不会取消云端工作；未提供云端取消操作。创建超时且没有 ID 时，先核查 Wylon 控制台/历史及用量，再明确决定是否重提，避免重复付费。
 
 - **节点/菜单不显示：**检查服务端导入报错、目录嵌套、安装依赖的解释器和宿主基线。安装/更新后重启服务并刷新页面。
 - **Key 缺失/无效：**检查面板实际来源；会话/本机 Key 优先于环境变量。连接成功仅验证模型列表请求。
 - **无法保存/删除 Key：**确认服务账户可访问实际用户目录，不要通过向其他用户放宽权限来绕过。
 - **HTTP 429：**检查账户频率/并发限制与已有任务，等待对应限制解除后再决定是否提交。
-- **模型/参考报错：**首尾帧明确选 H3，参考媒体明确选 Ref2VA。检查数量、音频时长和公网视频 URL，不要把本地路径改名冒充 URL。
-- **任务失败/过期：**查看 Wylon 返回状态，及时下载成功结果；查询无法恢复已过期素材。手动重新生成是新的可能付费任务。
-- **编解码/下载错误：**检查磁盘空间、网络及宿主环境的 PyAV。保留 ID；临时故障可在结果仍可用时，使用正确账户通过恢复节点重试获取。若报错指出超过输出下载上限（每张图片 64 MiB / 每个视频 1 GiB），重试或恢复不会绕过限制。查询无法恢复已过期结果；手动重新生成是新的可能付费任务。
+- **模型/参考报错：**首尾帧使用 H3 节点，参考媒体使用 Ref2VA 节点。检查数量、音频时长和公网视频 URL，不要把本地路径改名冒充 URL。
+- **任务失败/过期：**查看 Wylon 返回状态，及时下载成功结果；查询无法恢复已过期素材。手动重新生成是新的可能付费请求。
+- **编解码/下载错误：**检查磁盘空间、网络及宿主环境的 PyAV。保留 ID；临时故障可在结果仍可用时，使用正确账户通过恢复节点重试获取。若报错指出超过输出下载上限（每张图片 64 MiB / 每个视频 1 GiB），重试或恢复不会绕过限制。查询无法恢复已过期结果；手动重新生成是新的可能付费请求。
 - **代理后配置被拦截：**配置修改须为浏览器同源请求。确保代理保留一致的浏览器/服务端来源，不要关闭检查。
 
 结果下载到 `<ComfyUI 输出目录>/wylon/`，通常为 `ComfyUI/output/wylon/`。面板展示最近本地结果。素材下载不发送 API Key。原生 Save Image/Save Video 可能另外保存到用户指定位置。

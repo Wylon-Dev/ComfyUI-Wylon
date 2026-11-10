@@ -15,7 +15,7 @@ npm run build
 npm run package
 ```
 
-打包时可用 `PYTHON` 指定解释器；默认 Windows 使用 `python`，macOS/Linux 使用 `python3`。也可直接用选定解释器执行 `python scripts/package.py`。脚本在源码根目录旁生成 `ComfyUI-Wylon-0.2.0.zip` 与 `Wylon-ComfyTV-Workflows-0.2.0.zip`，分别附 SHA-256 文件；目标选项见 `--help`。校验和用于检测文件变化。
+打包时可用 `PYTHON` 指定解释器；默认 Windows 使用 `python`，macOS/Linux 使用 `python3`。也可直接用选定解释器执行 `python scripts/package.py`。脚本在源码根目录旁生成 `ComfyUI-Wylon-0.3.0.zip` 与 `Wylon-ComfyTV-Workflows-0.3.0.zip`，分别附 SHA-256 文件；目标选项见 `--help`。校验和用于检测文件变化。
 
 Windows 10/11 x64 手动/venv、官方便携版及 macOS 安装方式见 [README 安装说明](README.zh-CN.md#-安装)。准备修改时参阅[贡献检查指引](docs/VERIFICATION.md)。普通插件安装无需 Node.js、Bash 或 GCC。
 

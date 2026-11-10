@@ -1,64 +1,67 @@
-"""Five native V3 nodes. Wylon credentials never enter node inputs."""
+"""Six native V3 nodes, including a pure typed reference URL source. Wylon credentials never enter node inputs."""
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from comfy_api.latest import io
 from comfy_execution.validation import validate_node_input
-from .contracts import build_image_request, build_video_request, validate_media_url
+from .contracts import build_image_request, build_video_request, validate_video_parameters, validate_image_parameters, ReferenceVideoBundle, validate_reference_video_bundle
 from .media import image_batch_count, tensor_to_data_urls, audio_to_data_url, audio_duration
-from .runtime import execute_media, parse_extra
+from .runtime import execute_media, task_id_error
 
 CAPS = json.loads((Path(__file__).resolve().parents[1] / 'shared/model-capabilities.json').read_text())
 IMAGE_MODELS = list(CAPS['image_models'])
 SIZES = ['server_default'] + list(dict.fromkeys(s for m in CAPS['image_models'].values() for s in m['sizes']))
 RATIOS = CAPS['video']['ratios']
-VIDEO_MODELS = ['MiniMaxAI/MiniMax-H3', 'MiniMaxAI/MiniMax-H3-Ref2VA']
+H3_MODEL = 'MiniMaxAI/MiniMax-H3'
+REF2VA_MODEL = 'MiniMaxAI/MiniMax-H3-Ref2VA'
+REFERENCE_VIDEO = io.Custom('WYLON_REFERENCE_VIDEO')
 
 
 def output_schema(kind: str):
     return [
-        (io.Image.Output('image') if kind == 'image' else io.Video.Output('video')),
-        io.String.Output('task_id', tooltip='Async task ID for recovery / 异步任务恢复ID'),
-        io.String.Output('file_path', tooltip='Downloaded local file / 本地结果文件'),
+        (io.Image.Output('image', tooltip='Downloaded and decoded image.') if kind == 'image'
+         else io.Video.Output('video', tooltip='Downloaded video, including its audio track.')),
+        io.String.Output('task_id', tooltip='Existing asynchronous task ID; empty for synchronous images.'),
+        io.String.Output('file_path', tooltip='Downloaded file in the ComfyUI output directory.'),
     ]
 
 
-def advanced_inputs():
+def video_advanced_inputs():
     return [
         io.String.Input('negative_prompt', default='', multiline=True, advanced=True,
-                        tooltip='Model-dependent API parameter / 是否生效由模型决定'),
-        io.Int.Input('seed', default=-1, min=-1, max=4294967295, control_after_generate=True, advanced=True,
-                     tooltip='-1 omits seed; image seed is async-only / -1省略，图片仅异步可用'),
-        io.String.Input('extra_parameters', default='{}', multiline=True, advanced=True,
-                        tooltip='Other documented API parameters as JSON / 其他文档参数的JSON对象'),
+                        tooltip='Negative prompt; support depends on the model.'),
+        io.Int.Input('seed', default=-1, min=-1, max=4294967295, control_after_generate=io.ControlAfterGenerate.fixed, advanced=True,
+                     tooltip='-1 omits the API seed. Nonnegative seeds are sent for video generation. Seed control after generation is local.'),
     ]
 
 
-def video_inputs():
+def video_inputs(*, reference=False):
     return [
-        io.String.Input('prompt', default='', multiline=True, tooltip='Describe action, camera and sound / 描述动作、运镜与声音'),
-        io.Int.Input('duration', default=5, min=5, max=15, step=1, tooltip='Seconds / 秒'),
-        io.Combo.Input('resolution', options=['768p'], default='768p'),
-        io.Combo.Input('ratio', options=['server_default'] + RATIOS + ['adaptive'], default='16:9',
-                       tooltip='Adaptive is H3 frame mode only / 自适应仅H3首尾帧模式'),
-        *advanced_inputs(),
+        io.String.Input('prompt', default='', multiline=True, tooltip='Describe action, camera movement, and sound.'),
+        io.Int.Input('duration', default=5, min=5, max=15, step=1, tooltip='Video duration in seconds, from 5 to 15.'),
+        io.Combo.Input('resolution', options=['768p'], default='768p', tooltip='Video output resolution.'),
+        io.Combo.Input('ratio', options=['server_default'] + RATIOS + ([] if reference else ['adaptive']), default='16:9',
+                       tooltip=('Video aspect ratio; server_default omits the API ratio.' if reference else
+                                'Video aspect ratio; adaptive requires a first or last frame and omits the API ratio.')),
+        *video_advanced_inputs(),
     ]
 
 
-def schema(node_id, name, inputs, kind, description, category='Wylon'):
+def schema(node_id, name, inputs, kind, description, category='Wylon', *, output=False, legacy_inputs=False):
     return io.Schema(node_id=node_id, display_name=name, category=category, inputs=inputs,
                      outputs=output_schema(kind), description=description,
                      hidden=[io.Hidden.unique_id], not_idempotent=True,
-                     has_intermediate_output=True)
+                     has_intermediate_output=True, is_output_node=output, accept_all_inputs=legacy_inputs)
 
 
 def frame_url(image):
     if image is None:
         return None
     if image_batch_count(image) != 1:
-        raise ValueError('Each frame input accepts exactly one image / 首尾帧端口各只接受一张图')
+        raise ValueError('Each frame input accepts exactly one image')
     return tensor_to_data_urls(image, max_images=1)[0]
 
 
@@ -68,160 +71,236 @@ def ordered_values(group):
     return [v for _, v in sorted(group.items(), key=lambda item: int(item[0].rsplit('_', 1)[-1])) if v is not None]
 
 
+def removed_extra_error(values):
+    if 'extra_parameters' not in values:
+        return True
+    text = values['extra_parameters']
+    message = 'extra_parameters was removed. Remove the nonempty legacy JSON configuration before running this node.'
+    if not isinstance(text, str) or len(text) > 65536:
+        return message
+    try:
+        extra = json.loads(text.strip() or '{}')
+    except (ValueError, TypeError):
+        return message
+    return True if isinstance(extra, dict) and not extra else message
+
+
+def image_input_error(values, input_types=None):
+    linked = input_types or {}
+    widget_types = {'model': io.Combo.io_type, 'prompt': 'STRING', 'size': io.Combo.io_type,
+                    'negative_prompt': 'STRING', 'mode': io.Combo.io_type, 'seed': 'INT',
+                    'extra_parameters': 'STRING'}
+    for name, received in linked.items():
+        expected = widget_types.get(name)
+        if expected is not None and not validate_node_input(received, expected):
+            return f'{name} requires {expected}'
+    unknown = set(values) - set(widget_types)
+    if unknown:
+        return 'Unsupported image input: ' + ', '.join(sorted(unknown))
+    if 'mode' in values and values['mode'] != 'sync':
+        return 'Wylon Generate Image is synchronous only; remove the legacy mode input or use mode=sync.'
+    if 'seed' in values and (type(values['seed']) is not int or values['seed'] != -1):
+        return 'seed is unsupported by synchronous Wylon Generate Image; remove the legacy seed input.'
+    valid = removed_extra_error(values)
+    if valid is not True:
+        return valid
+    parameters = {name: values[name] for name in ('model', 'prompt', 'size', 'negative_prompt')
+                  if name in values and not (values[name] is None and name in linked)}
+    try:
+        validate_image_parameters(parameters)
+    except ValueError as exc:
+        return str(exc)
+    return True
+
+
 class WylonGenerateImage(io.ComfyNode):
     @classmethod
     def define_schema(cls):
         return schema('WylonGenerateImage', 'Wylon Generate Image', [
-            io.Combo.Input('model', options=IMAGE_MODELS, default=IMAGE_MODELS[0]),
-            io.String.Input('prompt', default='', multiline=True),
-            io.Combo.Input('size', options=SIZES, default='server_default', tooltip='Presets depend on selected model / 尺寸按模型切换'),
-            io.Combo.Input('mode', options=['async', 'sync'], default='async'),
-            *advanced_inputs(),
-        ], 'image', 'Generate one image through Wylon / Wylon生图。Sync returns no task ID; async supports recovery.')
+            io.Combo.Input('model', options=IMAGE_MODELS, default=IMAGE_MODELS[0], tooltip='Image generation model.'),
+            io.String.Input('prompt', default='', multiline=True, tooltip='Describe the image to generate.'),
+            io.Combo.Input('size', options=SIZES, default='server_default', tooltip='Image size presets depend on the selected model.'),
+            io.String.Input('negative_prompt', default='', multiline=True, advanced=True,
+                            tooltip='Negative prompt; support depends on the model.'),
+        ], 'image', 'Generate and download one image synchronously. The task ID output is empty.', legacy_inputs=True)
 
     @classmethod
-    async def execute(cls, model, prompt, size='server_default', mode='async', negative_prompt='', seed=-1, extra_parameters='{}'):
-        payload = build_image_request(model, prompt, size=size, mode=mode, negative_prompt=negative_prompt,
-                                      seed=seed if mode == 'async' else -1, extra=parse_extra(extra_parameters))
-        return await execute_media(cls, 'image', payload, mode=mode)
+    def validate_inputs(cls, input_types=None, **values):
+        return image_input_error(values, input_types)
+
+    @classmethod
+    async def execute(cls, model, prompt, size='server_default', negative_prompt='', **legacy):
+        valid = image_input_error(dict(legacy, model=model, prompt=prompt, size=size, negative_prompt=negative_prompt))
+        if valid is not True:
+            raise ValueError(valid)
+        payload = build_image_request(model, prompt, size=size, mode='sync', negative_prompt=negative_prompt)
+        return await execute_media(cls, 'image', payload, mode='sync')
 
 
-def video_reference_inputs(default_model):
-    # Widgets stay in their original positions; new widgets follow existing ones.
-    return [
-        io.String.Input('video_urls', default='', multiline=True, optional=True,
-                        tooltip='Ref2VA: public HTTPS URL per line, up to 3 / 参考模型：每行一个公网HTTPS视频URL，最多3个'),
-        io.Image.Input('first_frame', optional=True, tooltip='H3 first frame, exactly one image / H3首帧，单张图'),
-        io.Image.Input('last_frame', optional=True, tooltip='H3 last frame, exactly one image / H3尾帧，单张图'),
-        io.Autogrow.Input('images', template=io.Autogrow.TemplatePrefix(io.Image.Input('image'), prefix='image_', min=0, max=9), optional=True,
-                          tooltip='Ref2VA reference images / 参考模型：参考图片，最多9张'),
-        io.Autogrow.Input('audios', template=io.Autogrow.TemplatePrefix(io.Audio.Input('audio'), prefix='audio_', min=0, max=3), optional=True,
-                          tooltip='Ref2VA audio; also connect an image or video / 参考音频，须同时提供图片或视频'),
-        io.Combo.Input('model', options=VIDEO_MODELS, default=default_model, optional=True,
-                       tooltip='H3: text/first/last frames; Ref2VA: reference image/video/audio. Never switches automatically / H3文生与首尾帧；Ref2VA全模态参考，不自动切换'),
-    ]
-
-
-def video_input_error(model, first_frame=None, last_frame=None, images=None, audios=None, video_urls='', input_types=None):
-    """Check roles before encoding, also recognizing unresolved queue-time links."""
+def video_input_error(fixed_model, values, input_types=None):
+    """Retain legacy inputs for rejection, never to select another model."""
     linked = input_types or {}
-    # Requesting input_types disables ComfyUI's standard linked-type checks, so
-    # retain those checks for every known input, including ordinary widgets.
     widget_types = {'prompt': 'STRING', 'duration': 'INT', 'resolution': io.Combo.io_type,
                     'ratio': io.Combo.io_type, 'negative_prompt': 'STRING', 'seed': 'INT',
-                    'extra_parameters': 'STRING', 'video_urls': 'STRING', 'model': io.Combo.io_type}
+                    'extra_parameters': 'STRING', 'video_urls': 'STRING', 'model': io.Combo.io_type,
+                    'reference_videos': 'WYLON_REFERENCE_VIDEO'}
+    # input_types opts out of native linked-type checks, so preserve them here.
     for name, received in linked.items():
         expected = ('IMAGE' if name in ('first_frame', 'last_frame') or name.startswith('images.')
                     else 'AUDIO' if name.startswith('audios.') else widget_types.get(name))
         if expected is not None and not validate_node_input(received, expected):
-            return f'{name} requires {expected} / 该端口需要{expected}类型'
-    unresolved_model = model is None and 'model' in linked
-    if not unresolved_model and model not in VIDEO_MODELS:
-        return 'Choose a supported video model / 请选择支持的视频模型'
-    def connected(name, value):
-        return value is not None or name in linked
-    has_images = bool(ordered_values(images)) or any(name.startswith('images.') for name in linked)
-    has_audios = bool(ordered_values(audios)) or any(name.startswith('audios.') for name in linked)
-    unresolved_urls = video_urls is None and 'video_urls' in linked
-    if not unresolved_urls and not isinstance(video_urls, str):
-        return 'video_urls must contain HTTPS URLs, one per line / 每行填写一个HTTPS视频URL'
-    videos = [line.strip() for line in (video_urls or '').splitlines() if line.strip()]
-    if model == VIDEO_MODELS[0]:
-        if has_images or has_audios or videos:
-            return 'Reference images/audio/video require MiniMaxAI/MiniMax-H3-Ref2VA; choose Ref2VA in model / 图片、音频和视频参考须在model中选择Ref2VA模型'
-    elif not unresolved_model:
-        roles = [name for name, value in (('first_frame', first_frame), ('last_frame', last_frame)) if connected(name, value)]
+            return f'{name} requires {expected}'
+    valid = removed_extra_error(values)
+    if valid is not True:
+        return valid
+    if 'model' in values and values['model'] != fixed_model:
+        return f'This node has a fixed model: {fixed_model}. Use the other video node for its supported roles.'
+    known = set(widget_types) | {'first_frame', 'last_frame', 'images', 'audios'}
+    unknown = [name for name in values if name not in known and not re.fullmatch(r'(images\.image_[0-8]|audios\.audio_[0-2])', name)]
+    if unknown:
+        return 'Unsupported video input: ' + ', '.join(sorted(unknown))
+
+    def connected(name):
+        # None is an unresolved queue link when this key is present. Empty legacy
+        # widgets/groups are harmless; populated or unresolved roles are rejected.
+        return name in linked or (name in values and values[name] != '' and values[name] != {})
+
+    has_images = bool(ordered_values(values.get('images'))) or any(name.startswith('images.') for name in values) or any(name.startswith('images.') for name in linked)
+    has_audios = bool(ordered_values(values.get('audios'))) or any(name.startswith('audios.') for name in values) or any(name.startswith('audios.') for name in linked)
+    legacy_urls = values.get('video_urls', '')
+    if not isinstance(legacy_urls, str) or legacy_urls.strip():
+        return 'Use Wylon Reference Video URL and connect reference_video to the Ref2VA reference_videos input; video_urls was removed.'
+    reference_videos = values.get('reference_videos')
+    unresolved_videos = reference_videos is None and 'reference_videos' in linked
+    if fixed_model == H3_MODEL:
+        if has_images or has_audios or 'reference_videos' in values or 'reference_videos' in linked or ('images' in values and values['images'] is None) or ('audios' in values and values['audios'] is None):
+            return 'Reference images/audio/video require the Wylon Ref2VA Video node.'
+    else:
+        roles = [name for name in ('first_frame', 'last_frame') if connected(name)]
         if roles:
-            return ('Ref2VA does not accept ' + ', '.join(roles) + '; connect reference images to images, or choose H3 for first/last frames / '
-                    'Ref2VA不接受首尾帧角色；参考图片请连接images，首尾帧生成请选择H3')
-        if not has_images and not videos and not unresolved_urls:
-            return 'Ref2VA requires a reference image or video; audio alone is unsupported / Ref2VA须提供参考图片或视频，不支持仅音频或空参考'
-    if len(videos) > 3:
-        return 'At most 3 reference video URLs / 最多3个参考视频URL'
-    for url in videos:
+            return 'Ref2VA does not accept ' + ', '.join(roles) + '; connect reference images to images or use the Wylon H3 Video node.'
         try:
-            validate_media_url(url, 'video')
-        except ValueError:
-            return 'Each reference video must be a public HTTPS URL / 每个参考视频须使用公网HTTPS URL'
+            videos = validate_reference_video_bundle(reference_videos) if reference_videos is not None else ()
+        except ValueError as exc:
+            return str(exc)
+        if not has_images and not videos and not unresolved_videos:
+            return 'Ref2VA requires a reference image or video; audio alone is unsupported'
+    scalar_names = ('prompt', 'duration', 'resolution', 'ratio', 'negative_prompt', 'seed')
+    parameters = {name: values[name] for name in scalar_names
+                  if name in values and not (values[name] is None and name in linked)}
+    try:
+        validate_video_parameters(fixed_model, parameters,
+                                  has_frames=any(connected(name) for name in ('first_frame', 'last_frame')))
+    except ValueError as exc:
+        return str(exc)
     return True
 
 
 async def execute_video(cls, model, prompt, duration, resolution, ratio, negative_prompt, seed,
-                        extra_parameters, first_frame, last_frame, images, audios, video_urls):
-    valid = video_input_error(model, first_frame, last_frame, images, audios, video_urls)
-    if valid is not True:
-        raise ValueError(valid)
+                        first_frame=None, last_frame=None, images=None, audios=None, reference_videos=None):
+    video_refs = list(validate_reference_video_bundle(reference_videos)) if reference_videos is not None else []
     image_inputs = ordered_values(images)
     audio_inputs = ordered_values(audios)
     if len(audio_inputs) > 3:
-        raise ValueError('At most 3 reference audios / 最多3个参考音频')
+        raise ValueError('At most 3 reference audios')
     remaining_images = 9
     for image in image_inputs:
         remaining_images -= image_batch_count(image, max_images=remaining_images)
     for frame in (first_frame, last_frame):
         if frame is not None and image_batch_count(frame) != 1:
-            raise ValueError('Each frame input accepts exactly one image / 首尾帧端口各只接受一张图')
+            raise ValueError('Each frame input accepts exactly one image')
     if sum(audio_duration(audio) for audio in audio_inputs) > 15:
-        raise ValueError('Total reference audio must not exceed 15 seconds / 参考音频总时长不能超过15秒')
+        raise ValueError('Total reference audio must not exceed 15 seconds')
     image_urls = []
     for image in image_inputs:
         image_urls.extend(tensor_to_data_urls(image, max_images=9 - len(image_urls)))
     audio_urls = [audio_to_data_url(audio) for audio in audio_inputs]
-    video_refs = [line.strip() for line in video_urls.splitlines() if line.strip()]
     payload = build_video_request(model, prompt, first_frame=frame_url(first_frame), last_frame=frame_url(last_frame),
                                   images=image_urls, videos=video_refs, audios=audio_urls, duration=duration,
                                   resolution=resolution, ratio=ratio, negative_prompt=negative_prompt,
-                                  seed=seed, extra=parse_extra(extra_parameters))
+                                  seed=seed)
     return await execute_media(cls, 'video', payload)
 
 
 class WylonH3Video(io.ComfyNode):
     @classmethod
     def define_schema(cls):
-        return schema('WylonH3Video', 'Wylon H3 Video · 音视频（可切换模型）', [
-            *video_inputs(), *video_reference_inputs(VIDEO_MODELS[0]),
-        ], 'video', 'Choose H3 for text/first/last frames, Ref2VA for image/video/audio references / H3文生与首尾帧，Ref2VA全模态参考',
-           category='Wylon/Video 音视频')
+        return schema('WylonH3Video', 'Wylon H3 Video (Text / First & Last Frames)', [
+            *video_inputs(),
+            io.Image.Input('first_frame', optional=True, tooltip='H3 first frame; exactly one image.'),
+            io.Image.Input('last_frame', optional=True, tooltip='H3 last frame; exactly one image.'),
+        ], 'video', 'Generate with the fixed MiniMaxAI/MiniMax-H3 model using text and optional first/last frames. Submit, wait, and download.',
+           category='Wylon/Video', legacy_inputs=True)
 
     @classmethod
-    def validate_inputs(cls, model=VIDEO_MODELS[0], first_frame=None, last_frame=None, images=None, audios=None,
-                        video_urls='', input_types=None):
-        return video_input_error(model, first_frame, last_frame, images, audios, video_urls, input_types)
+    def validate_inputs(cls, input_types=None, **values):
+        return video_input_error(H3_MODEL, values, input_types)
 
     @classmethod
     async def execute(cls, prompt, duration=5, resolution='768p', ratio='16:9', negative_prompt='', seed=-1,
-                      extra_parameters='{}', first_frame=None, last_frame=None, video_urls='', images=None,
-                      audios=None, model=VIDEO_MODELS[0]):
-        return await execute_video(cls, model, prompt, duration, resolution, ratio, negative_prompt, seed,
-                                   extra_parameters, first_frame, last_frame, images, audios, video_urls)
+                      first_frame=None, last_frame=None, **legacy):
+        values = dict(legacy, prompt=prompt, duration=duration, resolution=resolution, ratio=ratio,
+                      negative_prompt=negative_prompt, seed=seed)
+        values.update({name: value for name, value in [('first_frame', first_frame), ('last_frame', last_frame)] if value is not None})
+        valid = video_input_error(H3_MODEL, values)
+        if valid is not True:
+            raise ValueError(valid)
+        return await execute_video(cls, H3_MODEL, prompt, duration, resolution, ratio, negative_prompt, seed,
+                                   first_frame=first_frame, last_frame=last_frame)
 
 
 class WylonRef2VAVideo(io.ComfyNode):
     @classmethod
     def define_schema(cls):
-        return schema('WylonRef2VAVideo', 'Wylon Ref2VA Video · 参考音视频（可切换模型）', [
-            *video_inputs(), *video_reference_inputs(VIDEO_MODELS[1]),
-        ], 'video', 'Choose Ref2VA for references; audio requires an image/video. Switch to H3 for text/first/last frames / 参考音频须配图片或视频；文生和首尾帧请选择H3',
-           category='Wylon/Video 音视频')
+        return schema('WylonRef2VAVideo', 'Wylon Ref2VA Video (Reference Media)', [
+            *video_inputs(reference=True),
+            REFERENCE_VIDEO.Input('reference_videos', optional=True,
+                                  tooltip='Validated reference video URLs from Wylon Reference Video URL; up to 3.'),
+            io.Autogrow.Input('images', template=io.Autogrow.TemplatePrefix(io.Image.Input('image', tooltip='Reference image or image batch.'), prefix='image_', min=0, max=9), optional=True,
+                              tooltip='Reference images; up to 9 images in total.'),
+            io.Autogrow.Input('audios', template=io.Autogrow.TemplatePrefix(io.Audio.Input('audio', tooltip='Reference audio.'), prefix='audio_', min=0, max=3), optional=True,
+                              tooltip='Up to 3 reference audios, 15 seconds total; also supply an image or video.'),
+        ], 'video', 'Generate with the fixed MiniMaxAI/MiniMax-H3-Ref2VA model using reference images/video/audio. Audio requires an image or video. Submit, wait, and download.',
+           category='Wylon/Video', legacy_inputs=True)
 
     @classmethod
-    def validate_inputs(cls, model=VIDEO_MODELS[1], first_frame=None, last_frame=None, images=None, audios=None,
-                        video_urls='', input_types=None):
-        return video_input_error(model, first_frame, last_frame, images, audios, video_urls, input_types)
+    def validate_inputs(cls, input_types=None, **values):
+        return video_input_error(REF2VA_MODEL, values, input_types)
 
     @classmethod
     async def execute(cls, prompt, duration=5, resolution='768p', ratio='16:9', negative_prompt='', seed=-1,
-                      extra_parameters='{}', video_urls='', images=None, audios=None, first_frame=None,
-                      last_frame=None, model=VIDEO_MODELS[1]):
-        return await execute_video(cls, model, prompt, duration, resolution, ratio, negative_prompt, seed,
-                                   extra_parameters, first_frame, last_frame, images, audios, video_urls)
+                      reference_videos=None, images=None, audios=None, **legacy):
+        values = dict(legacy, prompt=prompt, duration=duration, resolution=resolution, ratio=ratio,
+                      negative_prompt=negative_prompt, seed=seed,
+                      reference_videos=reference_videos, images=images, audios=audios)
+        valid = video_input_error(REF2VA_MODEL, values)
+        if valid is not True:
+            raise ValueError(valid)
+        if any(name.startswith(('images.', 'audios.')) for name in legacy):
+            raise ValueError('Reference inputs must use normalized images/audios groups')
+        return await execute_video(cls, REF2VA_MODEL, prompt, duration, resolution, ratio, negative_prompt, seed,
+                                   images=images, audios=audios, reference_videos=reference_videos)
+
+
+def retrieval_input_error(task_id, input_types):
+    if input_types and 'task_id' in input_types:
+        if not validate_node_input(input_types['task_id'], 'STRING'):
+            return 'task_id requires STRING'
+        if task_id is None:
+            return True  # Queue-time link; execute validates its resolved value.
+    return task_id_error(task_id)
 
 
 class WylonResumeImageTask(io.ComfyNode):
     @classmethod
     def define_schema(cls):
-        return schema('WylonResumeImageTask', 'Wylon Resume Image Task', [io.String.Input('task_id', default='')],
-                      'image', 'Query and download an existing image task; no new generation / 恢复图片任务，不重新生成')
+        return schema('WylonResumeImageTask', 'Wylon Get Image Task Result', [
+            io.String.Input('task_id', default='', tooltip='Existing asynchronous image task ID from the Wylon panel or an error message.')],
+            'image', 'Query an existing image task, wait for completion, and download its result. Runs standalone; each execution may save another copy.', output=True)
+
+    @classmethod
+    def validate_inputs(cls, task_id, input_types=None):
+        return retrieval_input_error(task_id, input_types)
 
     @classmethod
     async def execute(cls, task_id):
@@ -231,12 +310,48 @@ class WylonResumeImageTask(io.ComfyNode):
 class WylonResumeVideoTask(io.ComfyNode):
     @classmethod
     def define_schema(cls):
-        return schema('WylonResumeVideoTask', 'Wylon Resume Video Task', [io.String.Input('task_id', default='')],
-                      'video', 'Query and download an existing video task; no new generation / 恢复视频任务，不重新生成')
+        return schema('WylonResumeVideoTask', 'Wylon Get Video Task Result', [
+            io.String.Input('task_id', default='', tooltip='Existing asynchronous video task ID from the Wylon panel or an error message.')],
+            'video', 'Query an existing video task, wait for completion, and download its result. Runs standalone; each execution may save another copy.', output=True)
+
+    @classmethod
+    def validate_inputs(cls, task_id, input_types=None):
+        return retrieval_input_error(task_id, input_types)
 
     @classmethod
     async def execute(cls, task_id):
         return await execute_media(cls, 'video', task_id=task_id)
 
 
-NODE_CLASSES = [WylonGenerateImage, WylonH3Video, WylonRef2VAVideo, WylonResumeImageTask, WylonResumeVideoTask]
+class WylonReferenceVideoURL(io.ComfyNode):
+    @classmethod
+    def define_schema(cls):
+        return io.Schema(node_id='WylonReferenceVideoURL', display_name='Wylon Reference Video URL',
+                         category='Wylon/References', inputs=[
+                             io.String.Input('urls', default='', multiline=True,
+                                             tooltip='Public HTTPS video URLs, one per line; up to 3. Leave empty for no reference video.')],
+                         outputs=[REFERENCE_VIDEO.Output('reference_video',
+                                  tooltip='Validated reference video URLs for the Ref2VA reference_videos input.')],
+                         description='Validate up to three public HTTPS reference video URLs for Ref2VA. No upload, download, or generation.')
+
+    @classmethod
+    def validate_inputs(cls, urls, input_types=None):
+        if input_types and 'urls' in input_types:
+            if not validate_node_input(input_types['urls'], 'STRING'):
+                return 'urls requires STRING'
+            if urls is None:
+                return True
+        try:
+            cls.execute(urls)
+        except ValueError as exc:
+            return str(exc)
+        return True
+
+    @classmethod
+    def execute(cls, urls=''):
+        if not isinstance(urls, str):
+            raise ValueError('urls must be public HTTPS video URLs, one per line')
+        return io.NodeOutput(ReferenceVideoBundle(tuple(line.strip() for line in urls.splitlines() if line.strip())))
+
+
+NODE_CLASSES = [WylonGenerateImage, WylonH3Video, WylonRef2VAVideo, WylonResumeImageTask, WylonResumeVideoTask, WylonReferenceVideoURL]

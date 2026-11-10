@@ -1,7 +1,7 @@
 {
   "label": "Qwen/Qwen-Image-2.1 · Wylon",
   "order": 50,
-  "description": "Wylon hosted image generation. Select a model-specific size in the workflow or keep server_default.",
+  "description": "Wylon synchronous image generation via images/generations. Select a model-specific size in the workflow or keep server_default; no task ID; no mode or seed controls.",
   "result": {
     "type": "ui_save_url",
     "node": "2"
@@ -12,11 +12,6 @@
         "from": "main_prompt",
         "required": true,
         "error": "Enter an image prompt."
-      },
-      "seed": {
-        "from": "option:seed",
-        "default": "random_int31",
-        "cast": "int"
       }
     }
   }

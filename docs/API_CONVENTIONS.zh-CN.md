@@ -2,7 +2,7 @@
 
 [English](API_CONVENTIONS.md) · [使用指南](USAGE.zh-CN.md)
 
-ComfyUI-Wylon 0.2.0 的自有 HTTP API 遵循提供的服务规范：路径与 JSON 字段使用 snake_case、美式英语，集合使用复数。本插件不新增数据库、Kafka、对象存储或 gRPC 服务。
+ComfyUI-Wylon 0.3.0 的自有 HTTP API 遵循提供的服务规范：路径与 JSON 字段使用 snake_case、美式英语，集合使用复数。本插件不新增数据库、Kafka、对象存储或 gRPC 服务。
 
 ## 自有接口
 
@@ -37,7 +37,7 @@ canonical handler 返回 `{ "error": { "message": "...", "type": "...", "param":
 
 ## 兼容例外及演进
 
-ComfyUI 自有接口（`/view`、websocket 传输）、稳定 Wylon 节点 ID、IMAGE/VIDEO/AUDIO 端口、工作流字段、上游 Wylon/SDK 字段、模型 ID 及状态拼写保留原契约。`cancelled`、`downloaded` 等上游状态不强制改为新的自有枚举值；本次没有引入自有公开枚举。异步生成/恢复沿用供应商 task 协议，不创建额外 operation 服务。
+ComfyUI 自有接口（`/view`、websocket 传输）、稳定 Wylon 节点 ID、IMAGE/VIDEO/AUDIO 端口、工作流字段、上游 Wylon/SDK 字段、模型 ID 及状态拼写保留原契约。`cancelled`、`downloaded` 等上游状态不强制改为新的自有枚举值；本次没有引入自有公开枚举。视频异步生成及已有任务获取沿用供应商 task 协议，不创建额外 operation 服务。
 
 现有六个 `/wylon/*` method/path 组合保留原响应，包括配置 POST 及旧状态码；均返回 `Deprecation: true`、`Sunset: Mon, 10 May 2027 00:00:00 GMT` 与 successor Link。Sunset 只是最早日期，不会自动移除：从 0.2.0 公告起至少保留六个月及两个 minor 版本，且仅能在新 major 中移除；如果实际发布日期延后，应顺延最早日期。
 

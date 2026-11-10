@@ -3,7 +3,7 @@
 <h1>Wylon ComfyTV 工作流</h1>
 <p><strong>可直接导入 ComfyTV 的 Wylon 图像与视频工作流。</strong></p>
 
-[![版本](https://img.shields.io/badge/version-0.2.0-blue)](manifest.json)
+[![版本](https://img.shields.io/badge/version-0.3.0-blue)](manifest.json)
 [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![ComfyTV](https://img.shields.io/badge/ComfyTV-1.13.1-222222)](https://github.com/jtydhr88/ComfyTV/tree/v1.13.1)
 
@@ -11,7 +11,7 @@
 
 </div>
 
-在 ComfyTV 阶段中使用 Qwen 生成图像、使用 MiniMax H3 生成视频。本可选工作流包提供**五个 ComfyUI 工作流与五个配套 ComfyTV 预设**，包含阶段提示词/种子绑定、原生保存结果读取，以及可选参考分支裁剪。
+在 ComfyTV 阶段中使用 Qwen 生成图像、使用 MiniMax H3 生成视频。本可选工作流包提供**五个 ComfyUI 工作流与五个配套 ComfyTV 预设**，包含阶段提示词及视频种子绑定、原生保存结果读取，以及可选参考分支裁剪。
 
 ## 🧩 需要安装什么
 
@@ -22,7 +22,7 @@
 
 **ComfyTV 与 ComfyUI-Wylon 必须运行在同一台 ComfyUI 服务器。** 本包复用该服务器的节点和凭据，无需额外节点副本、npm 安装或本地模型权重。
 
-宿主版本：**ComfyUI v0.44.0 + ComfyTV v1.13.1 + ComfyUI-Wylon v0.2.0**。[清单](manifest.json)记录文件配对、节点 ID 及兼容信息。
+宿主版本：**ComfyUI v0.44.0 + ComfyTV v1.13.1 + ComfyUI-Wylon v0.3.0**。[清单](manifest.json)记录文件配对、节点 ID 及兼容信息。
 
 | 平台 | ComfyUI 安装方式 |
 | --- | --- |
@@ -57,7 +57,7 @@ Copy-Item .\workflows\video\*.json "$ComfyUIRoot\user\comfytv\workflows\video\"
 
 将 `$ComfyUIRoot` 替换为实际宿主路径，例如便携版的 `C:\AI\ComfyUI_windows_portable\ComfyUI`。
 
-如需本地构建，在**仓库根目录**使用开发工具链（Node.js 22.23.x、npm 与 Python）运行 `npm run package`，或用选定 Python 执行 `python scripts/package.py`，会生成独立的 `Wylon-ComfyTV-Workflows-0.2.0.zip`。解压后的包根目录为 `Wylon-ComfyTV-Workflows`，按上方步骤复制文件即可。构建详情见[贡献指南](https://github.com/wylon-cloud/comfyui-wylon/blob/main/CONTRIBUTING.zh-CN.md)。
+如需本地构建，在**仓库根目录**使用开发工具链（Node.js 22.23.x、npm 与 Python）运行 `npm run package`，或用选定 Python 执行 `python scripts/package.py`，会生成独立的 `Wylon-ComfyTV-Workflows-0.3.0.zip`。解压后的包根目录为 `Wylon-ComfyTV-Workflows`，按上方步骤复制文件即可。构建详情见[贡献指南](https://github.com/wylon-cloud/comfyui-wylon/blob/main/CONTRIBUTING.zh-CN.md)。
 
 工作流包放入 ComfyTV 用户工作流目录；只有 ComfyUI-Wylon 插件放入 `custom_nodes`。
 
@@ -88,23 +88,26 @@ Key 由 ComfyUI-Wylon 插件配置，在该服务器进程内共享。可选本�
 
 | 设置 | 行为 |
 | --- | --- |
-| 提示词 / 种子 | 阶段提示词 → `prompt`；阶段种子 → `seed`，未设置时随机生成 int31 |
-| 图像模式 / 尺寸 | 保持 `mode=async` 以支持种子与恢复；选择模型支持的尺寸或 `server_default` |
+| 提示词 / 视频种子 | 阶段提示词 → `prompt`；视频阶段种子 → `seed`，未设置时随机生成 int31；图像阶段不绑定种子 |
+| 图像生成 / 尺寸 | 同步 `images/generations`，不返回任务 ID；选择模型支持的尺寸或 `server_default` |
 | 视频时长 | 阶段 `duration_s` → **5–15 整数秒** |
 | 视频比例 | 阶段 `aspect_ratio`，默认 `16:9`；另支持 `21:9`、`4:3`、`1:1`、`3:4`、`9:16` |
 | 视频分辨率 | 固定 **768p**，不受 ComfyTV 显示分辨率选择器影响 |
-| 高级字段 | 在工作流或侧栏编辑负向提示词与 `extra_parameters` JSON，默认 JSON 为 `{}` |
+| 负向提示词 | 在工作流或侧栏编辑 `negative_prompt` |
 
-- **H3**（`MiniMaxAI/MiniMax-H3`）支持文字及专用首尾帧角色；**Ref2VA**（`MiniMaxAI/MiniMax-H3-Ref2VA`）支持图像、视频和音频参考。预设已选择对应模型；更换模型时也需调整输入角色。
+- **H3**（`MiniMaxAI/MiniMax-H3`）支持文字及专用首尾帧角色；**Ref2VA**（`MiniMaxAI/MiniMax-H3-Ref2VA`）支持图像、视频和音频参考。两个节点分别固定对应模型，无模型选择器。
 - Ref2VA 最多接受 **9 张图、3 个视频 URL 和 3 段音频**。必须提供图像或视频，不支持仅音频参考，也不接受专用首尾帧角色。
-- **参考视频须使用 Wylon 可访问的公网 HTTPS URL。** 在 ComfyTV 侧栏将 `video_urls` 设为字面值，每行一个 URL；随包绑定默认为空 `literal:`。自定义阶段选项也可使用 `option:<参数名>`。本地 `/view` 链接、ComfyTV 视频连线、上传文件名、Base64 和文件路径均不能用作参考视频。本包不提供自动上传。
+- **参考视频须使用 Wylon 可访问的公网 HTTPS URL。** 在 ComfyTV 侧栏将 **Wylon 参考视频链接**节点的 `urls` 设为字面值，每行一个 URL，最多三个；随包绑定默认为空 `literal:`。预设绑定此源节点，其专用输出连接到 Ref2VA 的 `reference_videos` 端口。自定义阶段选项也可使用 `option:<参数名>`。本地 `/view` 链接、ComfyTV 视频连线、上传文件名、Base64 和文件路径均不能用作参考视频。本包不提供自动上传。
+- 空 URL 源输出空参考数据，可仅使用图片参考；Ref2VA 仍要求图片或视频。URL 源只校验 URL，不读取凭据、不下载、不上传、不生成，也不计费。专用 `WYLON_REFERENCE_VIDEO` 连接不能用原生生成结果 `VIDEO` 代替。Ref2VA 没有 URL 文本控件。
 - 提示词中的参考命名遵循 Wylon API。本包不将 ComfyTV 的 `@image_N`、`@video_N`、`@audio_N` 标记转换为模型标签；混合音视频输入应遵循 Wylon 的参考编号规则。
 
 参考媒体时长、文件大小和支持的参数，详见插件[模型与媒体指南](https://github.com/wylon-cloud/comfyui-wylon/blob/main/docs/USAGE.zh-CN.md#模型与媒体)。
 
+图像生成固定同步，不返回任务 ID，没有模式或种子控件。视频生成使用异步 API 并等待成品；在 API 支持范围内转发非负视频种子，`-1` 省略种子，效果由模型决定。`control_after_generate` 只是本地下次运行的视频种子策略，不是 API 参数。
+
 ## 🔄 恢复、更新与排错
 
-生成 POST 不会自动重试。保留 **Wylon 任务**面板或错误中的已受理任务 ID，然后在 ComfyUI 使用 **Wylon Resume Image Task** 或 **Wylon Resume Video Task** 查询同一个任务。再次运行 Generate 节点会创建新任务，可能再次计费。停止本地等待不会取消云端任务。创建超时且没有 ID 时，请先核查 Wylon 历史与用量，再决定是否重新提交。
+生成 POST 不会自动重试。视频或历史异步图片任务请保留 **Wylon 任务**面板或错误中的已受理任务 ID，然后在 ComfyUI 使用 **Wylon 获取已有图片任务结果** 或 **Wylon 获取已有视频任务结果** 查询同一个任务。获取操作使用 GET，不创建、重启或取消云端任务。Generate 失败后不能向下游传递任务 ID，须手工复制面板/错误中的 ID。普通获取示例属于插件，不在本五套配对包内。再次运行 Generate 节点会发送新的生成请求，可能再次计费。停止本地等待不会取消云端任务。创建超时且没有 ID 时，请先核查 Wylon 历史与用量，再决定是否重新提交。
 
 | 问题 | 检查内容 |
 | --- | --- |
