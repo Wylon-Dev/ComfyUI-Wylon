@@ -1,0 +1,23 @@
+{
+  "label": "Qwen/Qwen-Image-2512 · Wylon",
+  "order": 50,
+  "description": "Wylon hosted image generation. Select a model-specific size in the workflow or keep server_default.",
+  "result": {
+    "type": "ui_save_url",
+    "node": "2"
+  },
+  "inputs": {
+    "1": {
+      "prompt": {
+        "from": "main_prompt",
+        "required": true,
+        "error": "Enter an image prompt."
+      },
+      "seed": {
+        "from": "option:seed",
+        "default": "random_int31",
+        "cast": "int"
+      }
+    }
+  }
+}

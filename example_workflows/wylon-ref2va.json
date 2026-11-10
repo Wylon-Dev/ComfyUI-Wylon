@@ -1,0 +1,702 @@
+{
+  "last_node_id": 32,
+  "last_link_id": 13,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "WylonRef2VAVideo",
+      "pos": [
+        520,
+        80
+      ],
+      "size": [
+        430,
+        650
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "first_frame",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "last_frame",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_0",
+          "type": "IMAGE",
+          "link": 2
+        },
+        {
+          "name": "images.image_1",
+          "type": "IMAGE",
+          "link": 3
+        },
+        {
+          "name": "images.image_2",
+          "type": "IMAGE",
+          "link": 4
+        },
+        {
+          "name": "images.image_3",
+          "type": "IMAGE",
+          "link": 5
+        },
+        {
+          "name": "images.image_4",
+          "type": "IMAGE",
+          "link": 6
+        },
+        {
+          "name": "images.image_5",
+          "type": "IMAGE",
+          "link": 7
+        },
+        {
+          "name": "images.image_6",
+          "type": "IMAGE",
+          "link": 8
+        },
+        {
+          "name": "images.image_7",
+          "type": "IMAGE",
+          "link": 9
+        },
+        {
+          "name": "images.image_8",
+          "type": "IMAGE",
+          "link": 10
+        },
+        {
+          "name": "audios.audio_0",
+          "type": "AUDIO",
+          "link": 11
+        },
+        {
+          "name": "audios.audio_1",
+          "type": "AUDIO",
+          "link": 12
+        },
+        {
+          "name": "audios.audio_2",
+          "type": "AUDIO",
+          "link": 13
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            1
+          ]
+        },
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "file_path",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "WylonRef2VAVideo"
+      },
+      "widgets_values": [
+        "A slow tracking shot of a harbor at sunrise, with waves and seabirds",
+        5,
+        "768p",
+        "16:9",
+        "",
+        -1,
+        "fixed",
+        "{}",
+        "",
+        "MiniMaxAI/MiniMax-H3-Ref2VA"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "SaveVideo",
+      "pos": [
+        960,
+        80
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 1
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "Wylon/video",
+        "auto",
+        "auto"
+      ]
+    },
+    {
+      "id": 10,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        80
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            2
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ]
+    },
+    {
+      "id": 11,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        270
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            3
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ]
+    },
+    {
+      "id": 12,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        460
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            4
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ]
+    },
+    {
+      "id": 13,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        650
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            5
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ]
+    },
+    {
+      "id": 14,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        840
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            6
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ]
+    },
+    {
+      "id": 15,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        1030
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            7
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ]
+    },
+    {
+      "id": 16,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        1220
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            8
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        1410
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            9
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ]
+    },
+    {
+      "id": 18,
+      "type": "LoadImage",
+      "pos": [
+        80,
+        1600
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            10
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "",
+        "image"
+      ]
+    },
+    {
+      "id": 30,
+      "type": "LoadAudio",
+      "pos": [
+        80,
+        1810
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 30,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            11
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio"
+      },
+      "widgets_values": [
+        ""
+      ]
+    },
+    {
+      "id": 31,
+      "type": "LoadAudio",
+      "pos": [
+        80,
+        2000
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 31,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            12
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio"
+      },
+      "widgets_values": [
+        ""
+      ]
+    },
+    {
+      "id": 32,
+      "type": "LoadAudio",
+      "pos": [
+        80,
+        2190
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 32,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            13
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadAudio"
+      },
+      "widgets_values": [
+        ""
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "VIDEO"
+    ],
+    [
+      2,
+      10,
+      0,
+      1,
+      2,
+      "IMAGE"
+    ],
+    [
+      3,
+      11,
+      0,
+      1,
+      3,
+      "IMAGE"
+    ],
+    [
+      4,
+      12,
+      0,
+      1,
+      4,
+      "IMAGE"
+    ],
+    [
+      5,
+      13,
+      0,
+      1,
+      5,
+      "IMAGE"
+    ],
+    [
+      6,
+      14,
+      0,
+      1,
+      6,
+      "IMAGE"
+    ],
+    [
+      7,
+      15,
+      0,
+      1,
+      7,
+      "IMAGE"
+    ],
+    [
+      8,
+      16,
+      0,
+      1,
+      8,
+      "IMAGE"
+    ],
+    [
+      9,
+      17,
+      0,
+      1,
+      9,
+      "IMAGE"
+    ],
+    [
+      10,
+      18,
+      0,
+      1,
+      10,
+      "IMAGE"
+    ],
+    [
+      11,
+      30,
+      0,
+      1,
+      11,
+      "AUDIO"
+    ],
+    [
+      12,
+      31,
+      0,
+      1,
+      12,
+      "AUDIO"
+    ],
+    [
+      13,
+      32,
+      0,
+      1,
+      13,
+      "AUDIO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        30,
+        30
+      ]
+    }
+  },
+  "version": 0.4
+}

@@ -1,0 +1,26 @@
+{
+  "name": "comfyui-wylon",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node web_src/copy-assets.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "package": "node scripts/run-python.mjs scripts/package.py"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=22.23.0 <23"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wylon-cloud/comfyui-wylon.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wylon-cloud/comfyui-wylon/issues"
+  },
+  "homepage": "https://github.com/wylon-cloud/comfyui-wylon#readme"
+}

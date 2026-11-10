@@ -1,0 +1,207 @@
+{
+  "label": "Wylon H3 Ref2VA · References",
+  "order": 62,
+  "description": "Wylon hosted video with native audio. 5–15 seconds, 768p. Reference videos require public HTTPS URLs; local ComfyTV video outputs cannot be used directly.",
+  "result": {
+    "type": "ui_save_url",
+    "node": "2"
+  },
+  "inputs": {
+    "1": {
+      "prompt": {
+        "from": "main_prompt",
+        "required": true,
+        "error": "Enter a video prompt."
+      },
+      "duration": {
+        "from": "option:duration_s",
+        "cast": "int"
+      },
+      "ratio": {
+        "from": "option:aspect_ratio",
+        "default": "16:9"
+      },
+      "resolution": {
+        "from": "literal:768p"
+      },
+      "seed": {
+        "from": "option:seed",
+        "default": "random_int31",
+        "cast": "int"
+      },
+      "video_urls": {
+        "from": "literal:"
+      }
+    },
+    "10": {
+      "image": {
+        "from": "upstream_image:annotated[0]"
+      }
+    },
+    "11": {
+      "image": {
+        "from": "upstream_image:annotated[1]"
+      }
+    },
+    "12": {
+      "image": {
+        "from": "upstream_image:annotated[2]"
+      }
+    },
+    "13": {
+      "image": {
+        "from": "upstream_image:annotated[3]"
+      }
+    },
+    "14": {
+      "image": {
+        "from": "upstream_image:annotated[4]"
+      }
+    },
+    "15": {
+      "image": {
+        "from": "upstream_image:annotated[5]"
+      }
+    },
+    "16": {
+      "image": {
+        "from": "upstream_image:annotated[6]"
+      }
+    },
+    "17": {
+      "image": {
+        "from": "upstream_image:annotated[7]"
+      }
+    },
+    "18": {
+      "image": {
+        "from": "upstream_image:annotated[8]"
+      }
+    },
+    "30": {
+      "audio": {
+        "from": "upstream_audio:annotated[0]"
+      }
+    },
+    "31": {
+      "audio": {
+        "from": "upstream_audio:annotated[1]"
+      }
+    },
+    "32": {
+      "audio": {
+        "from": "upstream_audio:annotated[2]"
+      }
+    }
+  },
+  "prune_when_missing": [
+    {
+      "when": "upstream_image:value[0]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "images.image_0"
+        }
+      ]
+    },
+    {
+      "when": "upstream_image:value[1]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "images.image_1"
+        }
+      ]
+    },
+    {
+      "when": "upstream_image:value[2]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "images.image_2"
+        }
+      ]
+    },
+    {
+      "when": "upstream_image:value[3]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "images.image_3"
+        }
+      ]
+    },
+    {
+      "when": "upstream_image:value[4]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "images.image_4"
+        }
+      ]
+    },
+    {
+      "when": "upstream_image:value[5]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "images.image_5"
+        }
+      ]
+    },
+    {
+      "when": "upstream_image:value[6]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "images.image_6"
+        }
+      ]
+    },
+    {
+      "when": "upstream_image:value[7]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "images.image_7"
+        }
+      ]
+    },
+    {
+      "when": "upstream_image:value[8]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "images.image_8"
+        }
+      ]
+    },
+    {
+      "when": "upstream_audio:value[0]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "audios.audio_0"
+        }
+      ]
+    },
+    {
+      "when": "upstream_audio:value[1]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "audios.audio_1"
+        }
+      ]
+    },
+    {
+      "when": "upstream_audio:value[2]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "audios.audio_2"
+        }
+      ]
+    }
+  ]
+}

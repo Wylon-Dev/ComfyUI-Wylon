@@ -1,0 +1,31 @@
+.wylon-panel { color:var(--fg-color,#e4e4e7);background:var(--comfy-menu-bg,#303034);border:1px solid var(--border-color,#777);border-radius:12px;width:min(680px,calc(100vw - 32px));max-height:85vh;padding:24px;font:14px/1.5 var(--font-family,system-ui);box-sizing:border-box;overflow:auto; }
+.wylon-panel::backdrop {background:rgb(0 0 0 / .55)}
+.wylon-panel header,.wylon-panel .wylon-task-head {display:flex;align-items:center;justify-content:space-between;gap:16px}
+.wylon-panel h2 {font-size:20px;letter-spacing:-.02em;margin:0}
+.wylon-panel h3 {font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:24px 0 10px;color:var(--descrip-text,#a7a7ad)}
+.wylon-panel button {border:1px solid var(--border-color,#777);border-radius:6px;background:var(--comfy-input-bg,#242428);color:inherit;padding:7px 11px;cursor:pointer;font:inherit}
+.wylon-panel button:focus-visible,.wylon-panel code:focus-visible {outline:2px solid var(--p-primary-color,#5cafff);outline-offset:3px}
+.wylon-panel button:disabled {opacity:.5;cursor:wait}
+.wylon-panel .wylon-task {border-inline-start:3px solid var(--p-primary-color,#5cafff);padding:10px 14px;margin:10px 0;background:var(--comfy-input-bg,#242428);border-radius:0 6px 6px 0}
+.wylon-panel code {display:block;overflow-wrap:anywhere;user-select:all;margin:8px 0;font:12px/1.5 ui-monospace,monospace}
+.wylon-panel .wylon-task-head small {text-align:end;overflow-wrap:anywhere}
+.wylon-panel .wylon-muted,.wylon-panel small {color:var(--descrip-text,#aaa)}
+.wylon-panel .wylon-connection {font-weight:600}
+.wylon-panel article span[role=status] {display:block;font-size:12px;margin-top:6px}
+.wylon-panel li {overflow-wrap:anywhere}
+@media(max-width:520px){.wylon-panel{padding:16px}.wylon-panel .wylon-task-head{display:block}.wylon-panel .wylon-task-head small{display:block;text-align:start}}
+.wylon-panel{width:min(900px,calc(100vw - 32px))}
+.wylon-panel .wylon-config{border:1px solid var(--border-color,#666);padding:14px 16px;border-radius:8px;margin:16px 0}
+.wylon-panel .wylon-config h3{margin:0 0 8px}
+.wylon-panel form>label{display:block;margin:8px 0}
+.wylon-panel input[type=password]{display:block;width:100%;box-sizing:border-box;border:1px solid var(--border-color,#777);border-radius:6px;background:var(--comfy-input-bg,#242428);color:inherit;padding:10px;font:inherit}
+.wylon-panel input:focus-visible{outline:2px solid var(--p-primary-color,#5cafff);outline-offset:2px}
+.wylon-panel label.wylon-remember{display:flex;gap:8px;align-items:center}
+.wylon-panel .wylon-actions{display:flex;gap:8px;flex-wrap:wrap}
+.wylon-panel .wylon-config-feedback{margin:8px 0;font-size:12px}
+.wylon-panel .wylon-gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:12px}
+.wylon-panel figure{margin:0;padding:8px;border:1px solid var(--border-color,#666);border-radius:8px;min-width:0}
+.wylon-panel figure img,.wylon-panel figure video{width:100%;height:240px;object-fit:contain;border-radius:4px;background:var(--comfy-input-bg,#242428)}
+.wylon-panel figcaption{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:8px}
+.wylon-panel a{color:var(--p-primary-color,#7bbdff)}
+.wylon-panel details{margin:14px 0}.wylon-panel summary{cursor:pointer;font-weight:600}

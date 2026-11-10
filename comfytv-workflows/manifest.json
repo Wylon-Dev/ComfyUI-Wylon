@@ -1,0 +1,46 @@
+{
+  "name": "Wylon-ComfyTV-Workflows",
+  "version": "0.2.0",
+  "distribution": "open-source",
+  "compatibility": {
+    "comfyui": "0.44.0",
+    "comfytv": "1.13.1",
+    "comfyui_wylon": "0.2.0",
+    "same_comfyui_server_required": true
+  },
+  "installation_root": "<ComfyUI>/user/comfytv/workflows",
+  "credentials": "Configure through ComfyUI-Wylon Wylon tasks panel or WYLON_API_KEY server environment; no credentials in this pack",
+  "workflow_pairs": [
+    {
+      "graph": "workflows/image/wylon-qwen-2512.json",
+      "preset": "workflows/image/wylon-qwen-2512_preset.json",
+      "wylon_node_id": 1,
+      "wylon_node_type": "WylonGenerateImage"
+    },
+    {
+      "graph": "workflows/image/wylon-qwen-2-1.json",
+      "preset": "workflows/image/wylon-qwen-2-1_preset.json",
+      "wylon_node_id": 1,
+      "wylon_node_type": "WylonGenerateImage"
+    },
+    {
+      "graph": "workflows/video/wylon-h3-text.json",
+      "preset": "workflows/video/wylon-h3-text_preset.json",
+      "wylon_node_id": 1,
+      "wylon_node_type": "WylonH3Video"
+    },
+    {
+      "graph": "workflows/video/wylon-h3-first-last.json",
+      "preset": "workflows/video/wylon-h3-first-last_preset.json",
+      "wylon_node_id": 1,
+      "wylon_node_type": "WylonH3Video"
+    },
+    {
+      "graph": "workflows/video/wylon-ref2va.json",
+      "preset": "workflows/video/wylon-ref2va_preset.json",
+      "wylon_node_id": 1,
+      "wylon_node_type": "WylonRef2VAVideo"
+    }
+  ],
+  "license": "MIT"
+}

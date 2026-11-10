@@ -1,0 +1,16 @@
+[project]
+name = "comfyui-wylon"
+version = "0.2.0"
+description = "Wylon image and video nodes for ComfyUI"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+requires-python = ">=3.10"
+dependencies = ["aiohttp>=3.10,<4", "Pillow>=10", "numpy>=1.26", "av>=17"]
+
+[tool.comfy]
+DisplayName = "ComfyUI-Wylon"
+includes = ["web", "locales", "shared", "example_workflows", "wylon", "LICENSE", "THIRD_PARTY_NOTICES.md"]
+
+[project.urls]
+Repository = "https://github.com/wylon-cloud/comfyui-wylon"
+Issues = "https://github.com/wylon-cloud/comfyui-wylon/issues"

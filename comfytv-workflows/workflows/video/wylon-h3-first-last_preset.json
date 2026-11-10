@@ -1,0 +1,57 @@
+{
+  "label": "Wylon H3 · First / last frame",
+  "order": 61,
+  "description": "Wylon hosted video with native audio. 5–15 seconds, 768p. Reference videos require public HTTPS URLs; local ComfyTV video outputs cannot be used directly.",
+  "result": {
+    "type": "ui_save_url",
+    "node": "2"
+  },
+  "inputs": {
+    "1": {
+      "prompt": {
+        "from": "main_prompt",
+        "required": true,
+        "error": "Enter a video prompt."
+      },
+      "duration": {
+        "from": "option:duration_s",
+        "cast": "int"
+      },
+      "ratio": {
+        "from": "option:aspect_ratio",
+        "default": "16:9"
+      },
+      "resolution": {
+        "from": "literal:768p"
+      },
+      "seed": {
+        "from": "option:seed",
+        "default": "random_int31",
+        "cast": "int"
+      }
+    },
+    "10": {
+      "image": {
+        "from": "upstream_image:annotated[0]",
+        "required": true,
+        "error": "Connect a first-frame image to this stage."
+      }
+    },
+    "11": {
+      "image": {
+        "from": "upstream_image:annotated[1]"
+      }
+    }
+  },
+  "prune_when_missing": [
+    {
+      "when": "upstream_image:value[1]",
+      "drop_upstream_of": [
+        {
+          "node": "1",
+          "input": "last_frame"
+        }
+      ]
+    }
+  ]
+}

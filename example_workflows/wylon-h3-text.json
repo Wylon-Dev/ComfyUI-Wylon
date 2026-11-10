@@ -1,0 +1,180 @@
+{
+  "last_node_id": 2,
+  "last_link_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "WylonH3Video",
+      "pos": [
+        520,
+        80
+      ],
+      "size": [
+        430,
+        650
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "first_frame",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "last_frame",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_0",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_1",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_2",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_3",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_4",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_5",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_6",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_7",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "images.image_8",
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "name": "audios.audio_0",
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "name": "audios.audio_1",
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "name": "audios.audio_2",
+          "type": "AUDIO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            1
+          ]
+        },
+        {
+          "name": "task_id",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "file_path",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "WylonH3Video"
+      },
+      "widgets_values": [
+        "A slow tracking shot of a harbor at sunrise, with waves and seabirds",
+        5,
+        "768p",
+        "16:9",
+        "",
+        -1,
+        "fixed",
+        "{}",
+        "",
+        "MiniMaxAI/MiniMax-H3"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "SaveVideo",
+      "pos": [
+        960,
+        80
+      ],
+      "size": [
+        370,
+        140
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 1
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "Wylon/video",
+        "auto",
+        "auto"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.8,
+      "offset": [
+        30,
+        30
+      ]
+    }
+  },
+  "version": 0.4
+}

@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+node_modules/
+*.tsbuildinfo
+*.part
+.DS_Store
+.superpowers/
+docs/superpowers/
+*.log
+*.zip
+*.sha256
