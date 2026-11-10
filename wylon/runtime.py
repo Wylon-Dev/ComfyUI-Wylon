@@ -60,7 +60,7 @@ def _save_ui(path: Path, kind: str):
 
 def task_id_error(task_id, *, api_key=''):
     if (not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,200}', task_id)
-            or re.search(r'sk-[A-Za-z0-9_-]{24,}', task_id, re.IGNORECASE)
+            or re.search(r'(?<![A-Za-z0-9])sk-[A-Za-z0-9_-]{24,}', task_id, re.IGNORECASE)
             or (api_key and api_key in task_id)):
         return 'Invalid task ID; copy an existing asynchronous task ID from the Wylon panel or an error message.'
     return True

@@ -2,6 +2,10 @@
 
 [简体中文](CHANGELOG.zh-CN.md)
 
+## 0.3.1
+
+- Fixes task ID validation to accept legitimate long `task-`, `mask-` and `risk-` identifiers while continuing to block credential-bearing task IDs before recording or querying them.
+
 ## 0.3.0
 
 - Separates fixed H3 text/first-last-frame generation from fixed Ref2VA reference-media generation; preserves existing node IDs and native IMAGE/VIDEO/AUDIO contracts.

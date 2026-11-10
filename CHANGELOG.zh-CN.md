@@ -2,6 +2,10 @@
 
 [English](CHANGELOG.md)
 
+## 0.3.1
+
+- 修复任务 ID 校验对合法长 `task-`、`mask-`、`risk-` 标识的误拦截，同时继续在记录或查询前阻止带凭据的任务 ID。
+
 ## 0.3.0
 
 - 将固定 H3 文字/首尾帧生成与固定 Ref2VA 参考素材生成分开，保留既有节点 ID 及原生 IMAGE/VIDEO/AUDIO 契约。

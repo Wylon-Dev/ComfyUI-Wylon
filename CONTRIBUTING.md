@@ -15,7 +15,7 @@ npm run build
 npm run package
 ```
 
-For packaging, `PYTHON` selects an interpreter; otherwise the script uses `python` on Windows and `python3` on macOS/Linux. You may also invoke `python scripts/package.py` with your selected interpreter. The script writes `ComfyUI-Wylon-0.3.0.zip` and `Wylon-ComfyTV-Workflows-0.3.0.zip` beside the source root, with SHA-256 sidecars. Use its `--help` for destination options. Checksums detect changed files.
+For packaging, `PYTHON` selects an interpreter; otherwise the script uses `python` on Windows and `python3` on macOS/Linux. You may also invoke `python scripts/package.py` with your selected interpreter. The script writes `ComfyUI-Wylon-0.3.1.zip` and `Wylon-ComfyTV-Workflows-0.3.1.zip` beside the source root, with SHA-256 sidecars. Use its `--help` for destination options. Checksums detect changed files.
 
 For Windows 10/11 x64 manual/venv, official portable and macOS installations, use the [README installation instructions](README.md#-install). See [contributor checks](docs/VERIFICATION.md) when preparing changes. Ordinary plugin installation needs no Node.js, Bash or GCC.
 
