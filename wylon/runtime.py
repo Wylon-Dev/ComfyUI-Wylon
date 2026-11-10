@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import asyncio
 import base64
-import json
 import os
+import re
 from pathlib import Path
 import sys
 import tempfile
@@ -36,18 +36,6 @@ def journal() -> Journal:
     return Journal(Path(folder_paths.get_user_directory()) / 'wylon')
 
 
-def parse_extra(text: str) -> dict:
-    if not isinstance(text, str) or len(text) > 65536:
-        raise ValueError('Advanced parameters must be a JSON object under 64 KiB / 高级参数须为小于64 KiB的JSON对象')
-    try:
-        result = json.loads(text or '{}')
-    except (json.JSONDecodeError, ValueError):
-        raise ValueError('Invalid advanced JSON / 高级参数JSON格式错误') from None
-    if not isinstance(result, dict):
-        raise ValueError('Advanced parameters must be a JSON object / 高级参数必须为JSON对象')
-    return result
-
-
 def interrupt() -> None:
     import comfy.model_management
     comfy.model_management.throw_exception_if_processing_interrupted()
@@ -70,15 +58,24 @@ def _save_ui(path: Path, kind: str):
     return ui.PreviewVideo([result]) if kind == 'video' else ui.SavedImages([result])
 
 
+def task_id_error(task_id, *, api_key=''):
+    if (not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,200}', task_id)
+            or re.search(r'sk-[A-Za-z0-9_-]{24,}', task_id, re.IGNORECASE)
+            or (api_key and api_key in task_id)):
+        return 'Invalid task ID; copy an existing asynchronous task ID from the Wylon panel or an error message.'
+    return True
+
+
 async def execute_media(cls, kind: str, payload: dict | None = None, *, mode: str = 'async', task_id: str = '') -> io.NodeOutput:
+    if payload is None:
+        valid = task_id_error(task_id)
+        if valid is not True:
+            raise ValueError(valid)
     started = time.monotonic()
     node_id = getattr(cls.hidden, 'unique_id', None)
     model = payload.get('model', '') if payload else ''
     history = journal()
-    known_id = task_id
-    if task_id and not model:
-        previous = next((row for row in history.list() if row['id'] == task_id), None)
-        model = previous['model'] if previous else ''
+    known_id = ''
     path = None
     active_key = ''
     terminal_state = ''
@@ -102,6 +99,13 @@ async def execute_media(cls, kind: str, payload: dict | None = None, *, mode: st
     try:
         api = client()
         active_key = api.api_key
+        if payload is None:
+            if task_id_error(task_id, api_key=active_key) is not True:
+                raise ValueError('Invalid task ID; API credentials cannot be used as task IDs.')
+            known_id = task_id
+        if known_id and not model:
+            previous = next((row for row in history.list() if row['id'] == known_id), None)
+            model = previous['model'] if previous else ''
         async with api:
             interrupt()
             if payload is not None:
@@ -110,13 +114,14 @@ async def execute_media(cls, kind: str, payload: dict | None = None, *, mode: st
                     final = await api.generate_sync(payload)
                 else:
                     initial = await api.create(payload)
-                    known_id = initial.get('id', '')
-                    if not isinstance(known_id, str) or not known_id:
-                        raise ValueError('Wylon accepted no usable task ID; check console before retrying / 未返回任务ID，请先核实控制台')
+                    candidate_id = initial.get('id', '')
+                    if task_id_error(candidate_id, api_key=active_key) is not True:
+                        raise ValueError('Wylon returned no safe task ID; check the provider console before retrying / 未返回安全可用的任务ID，请先核实控制台')
+                    known_id = candidate_id
                     try:
                         update({**initial, 'status': initial.get('status', 'queued')})
                     except Exception:
-                        raise RuntimeError(f'Task created but local journal failed; resume task {known_id} / 任务已创建但记录失败，请保存任务ID') from None
+                        raise RuntimeError(f'Task created but local journal failed; use Wylon Get Task Result with task {known_id} / 任务已创建但记录失败，请保存任务ID') from None
                     final = await api.wait(known_id, kind, timeout=900, on_status=update, interrupt=interrupt)
             else:
                 # Read-only recovery; never creates a new generation.
@@ -188,8 +193,9 @@ async def execute_media(cls, kind: str, payload: dict | None = None, *, mode: st
             raise
         # Include recoverable ID even for host interrupts, download or codec errors.
         if known_id:
-            safe = WylonError(str(exc), api_key=active_key)
-            raise RuntimeError(f'{safe} [task_id={known_id}; use a Wylon Resume node / 可使用恢复节点]') from None
+            message = f'[task_id={known_id}; use the matching Wylon Get Image Task Result or Wylon Get Video Task Result node / 使用对应的获取任务结果节点] {exc}'
+            safe = WylonError(message, api_key=active_key)
+            raise RuntimeError(str(safe)) from None
         if active_key and active_key in str(exc):
             raise WylonError(str(exc), api_key=active_key) from None
         raise

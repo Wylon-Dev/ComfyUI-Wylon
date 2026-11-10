@@ -1,0 +1,274 @@
+{
+  "WylonGenerateImage": {
+    "display_name": "Wylon Generate Image",
+    "description": "Generate, wait for, and download one image through the synchronous image API. No task ID is returned.",
+    "inputs": {
+      "model": {
+        "name": "Model",
+        "tooltip": "Select a Wylon model. The API model ID is unchanged."
+      },
+      "prompt": {
+        "name": "Prompt",
+        "tooltip": "Describe the image to generate."
+      },
+      "size": {
+        "name": "Image size",
+        "tooltip": "Presets follow the selected model; server_default omits size."
+      },
+      "negative_prompt": {
+        "name": "Negative prompt",
+        "tooltip": "Optional model-dependent negative prompt."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "Image",
+        "tooltip": "Generated media downloaded from Wylon."
+      },
+      "1": {
+        "name": "Task ID",
+        "tooltip": "Synchronous image generation returns no task ID; this output stays empty for workflow compatibility."
+      },
+      "2": {
+        "name": "Local file path",
+        "tooltip": "Local path of the downloaded result."
+      }
+    }
+  },
+  "WylonH3Video": {
+    "display_name": "Wylon H3 Video (Text / First & Last Frames)",
+    "description": "Submit a fixed MiniMaxAI/MiniMax-H3 video task and wait. Use text alone or optional first/last frames.",
+    "inputs": {
+      "prompt": {
+        "name": "Prompt",
+        "tooltip": "Describe the scene, action, camera and sound."
+      },
+      "duration": {
+        "name": "Duration (seconds)",
+        "tooltip": "Video duration in seconds, 5–15."
+      },
+      "resolution": {
+        "name": "Resolution",
+        "tooltip": "Fixed video resolution: 768p."
+      },
+      "ratio": {
+        "name": "Aspect ratio",
+        "tooltip": "server_default omits ratio. adaptive requires a first or last frame and omits the API ratio."
+      },
+      "negative_prompt": {
+        "name": "Negative prompt",
+        "tooltip": "Optional model-dependent negative prompt."
+      },
+      "seed": {
+        "name": "Seed",
+        "tooltip": "-1 omits seed. Nonnegative values are forwarded to the video API. Reproducibility depends on the model."
+      },
+      "control_after_generate": {
+        "name": "Next-run seed policy",
+        "tooltip": "Local policy updates the seed for the next queued run; it is never sent to Wylon."
+      },
+      "first_frame": {
+        "name": "First frame",
+        "tooltip": "H3 only: connect exactly one image."
+      },
+      "last_frame": {
+        "name": "Last frame",
+        "tooltip": "H3 only: connect exactly one image. Supports a last frame alone or first and last frames."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "Video",
+        "tooltip": "Generated media downloaded from Wylon."
+      },
+      "1": {
+        "name": "Task ID",
+        "tooltip": "Existing asynchronous video task ID for retrieving this task result again."
+      },
+      "2": {
+        "name": "Local file path",
+        "tooltip": "Local path of the downloaded result."
+      }
+    }
+  },
+  "WylonRef2VAVideo": {
+    "display_name": "Wylon Ref2VA Video (Reference Media)",
+    "description": "Submit a fixed MiniMaxAI/MiniMax-H3-Ref2VA task and wait. Connect reference images, dedicated reference-video URLs, and optional audio; audio requires an image or video.",
+    "inputs": {
+      "prompt": {
+        "name": "Prompt",
+        "tooltip": "Describe the scene, action, camera and sound."
+      },
+      "duration": {
+        "name": "Duration (seconds)",
+        "tooltip": "Video duration in seconds, 5–15."
+      },
+      "resolution": {
+        "name": "Resolution",
+        "tooltip": "Fixed video resolution: 768p."
+      },
+      "ratio": {
+        "name": "Aspect ratio",
+        "tooltip": "Video aspect ratio; server_default omits the API ratio."
+      },
+      "negative_prompt": {
+        "name": "Negative prompt",
+        "tooltip": "Optional model-dependent negative prompt."
+      },
+      "seed": {
+        "name": "Seed",
+        "tooltip": "-1 omits seed. Nonnegative values are forwarded to the video API. Reproducibility depends on the model."
+      },
+      "control_after_generate": {
+        "name": "Next-run seed policy",
+        "tooltip": "Local policy updates the seed for the next queued run; it is never sent to Wylon."
+      },
+      "images": {
+        "name": "Reference images",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "audios": {
+        "name": "Reference audio",
+        "tooltip": "Up to 3 reference audio clips, 15 seconds total; also provide a reference image or video."
+      },
+      "images_image": {
+        "name": "Reference image",
+        "tooltip": "Connect one reference image."
+      },
+      "audios_audio": {
+        "name": "Reference audio",
+        "tooltip": "Up to 3 reference audio clips, 15 seconds total; also provide a reference image or video."
+      },
+      "images_image_0": {
+        "name": "Reference image 1",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "images_image_1": {
+        "name": "Reference image 2",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "images_image_2": {
+        "name": "Reference image 3",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "images_image_3": {
+        "name": "Reference image 4",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "images_image_4": {
+        "name": "Reference image 5",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "images_image_5": {
+        "name": "Reference image 6",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "images_image_6": {
+        "name": "Reference image 7",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "images_image_7": {
+        "name": "Reference image 8",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "images_image_8": {
+        "name": "Reference image 9",
+        "tooltip": "Ref2VA only: connect up to 9 reference images."
+      },
+      "audios_audio_0": {
+        "name": "Reference audio 1",
+        "tooltip": "Up to 3 reference audio clips, 15 seconds total; also provide a reference image or video."
+      },
+      "audios_audio_1": {
+        "name": "Reference audio 2",
+        "tooltip": "Up to 3 reference audio clips, 15 seconds total; also provide a reference image or video."
+      },
+      "audios_audio_2": {
+        "name": "Reference audio 3",
+        "tooltip": "Up to 3 reference audio clips, 15 seconds total; also provide a reference image or video."
+      },
+      "reference_videos": {
+        "name": "Reference videos",
+        "tooltip": "Connect the dedicated output of Wylon Reference Video URL, containing up to 3 public HTTPS video URLs. Empty means no reference video."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "Video",
+        "tooltip": "Generated media downloaded from Wylon."
+      },
+      "1": {
+        "name": "Task ID",
+        "tooltip": "Existing asynchronous video task ID for retrieving this task result again."
+      },
+      "2": {
+        "name": "Local file path",
+        "tooltip": "Local path of the downloaded result."
+      }
+    }
+  },
+  "WylonResumeImageTask": {
+    "display_name": "Wylon Get Image Task Result",
+    "description": "Query a historical existing asynchronous image task, wait, and download its result. Runs standalone; repeated executions may save another copy. No new task is created.",
+    "inputs": {
+      "task_id": {
+        "name": "Existing task ID",
+        "tooltip": "Query and download an existing task of the matching media type. This does not create a new generation task."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "Image",
+        "tooltip": "Generated media downloaded from Wylon."
+      },
+      "1": {
+        "name": "Task ID",
+        "tooltip": "Historical existing asynchronous image task ID for retrieving the original result again."
+      },
+      "2": {
+        "name": "Local file path",
+        "tooltip": "Local path of the downloaded result."
+      }
+    }
+  },
+  "WylonResumeVideoTask": {
+    "display_name": "Wylon Get Video Task Result",
+    "description": "Query an existing video task, wait, and download its result. Runs standalone; repeated executions may save another copy. No new generation task is created.",
+    "inputs": {
+      "task_id": {
+        "name": "Existing task ID",
+        "tooltip": "Query and download an existing task of the matching media type. This does not create a new generation task."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "Video",
+        "tooltip": "Generated media downloaded from Wylon."
+      },
+      "1": {
+        "name": "Task ID",
+        "tooltip": "Existing asynchronous video task ID for retrieving this task result again."
+      },
+      "2": {
+        "name": "Local file path",
+        "tooltip": "Local path of the downloaded result."
+      }
+    }
+  },
+  "WylonReferenceVideoURL": {
+    "display_name": "Wylon Reference Video URL",
+    "description": "Validate up to 3 public HTTPS video URLs for the dedicated Ref2VA reference-video input. One URL per line; empty means no video. Does not download, generate, or read an API key.",
+    "inputs": {
+      "urls": {
+        "name": "Video URLs",
+        "tooltip": "Up to 3 public HTTPS video URLs, one per line. Empty means no reference video."
+      }
+    },
+    "outputs": {
+      "0": {
+        "name": "Reference video",
+        "tooltip": "Validated reference-video value for the dedicated Ref2VA input; this is not a generated video."
+      }
+    }
+  }
+}

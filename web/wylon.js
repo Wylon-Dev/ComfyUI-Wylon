@@ -1,9 +1,14 @@
+import { migrateWorkflow } from './migration.js';
 import { app } from '../../../scripts/app.js';
 import { api } from '../../../scripts/api.js';
 import { apiErrorMessage, parsePageToken, formatTaskTimestamp, applyImageSize, languageFor, parseModels, parseStatus, parseTasks } from './core.js';
 let capabilities = { image_models: {} };
 let strings = {};
 let locale = 'en';
+let native = {};
+const nodes = new Set();
+let localeRevision = 0;
+let localeSetting;
 let dialog;
 let liveContainer;
 let configFeedback;
@@ -241,10 +246,128 @@ async function refreshMetadata() {
             refresh.disabled = false;
     }
 }
-function bindConfiguration(node) {
+function translateNode(node) {
+    const id = node.comfyClass;
+    if (!id)
+        return;
+    const def = native[locale]?.nodeDefs[id];
+    if (!def)
+        return;
+    const titles = ['Wylon H3 Video · 音视频（可切换模型）', 'Wylon Ref2VA Video · 全模态参考', 'Wylon Ref2VA Video · 参考音视频（可切换模型）', 'Wylon Resume Image Task', 'Wylon Resume Video Task'];
+    for (const catalog of Object.values(native)) {
+        const title = catalog?.nodeDefs[id]?.display_name;
+        if (title)
+            titles.push(title);
+    }
+    if (!node.title || titles.includes(node.title))
+        node.title = def.display_name;
+    for (const widget of node.widgets ?? []) {
+        const text = def.inputs[widget.name];
+        if (text) {
+            widget.label = text.name;
+            widget.tooltip = text.tooltip;
+            widget.options.tooltip = text.tooltip;
+            if (widget.inputEl) {
+                widget.inputEl.placeholder = text.name;
+                widget.inputEl.setAttribute('aria-label', text.name);
+                widget.inputEl.title = text.tooltip;
+            }
+        }
+    }
+    for (const input of node.inputs ?? []) {
+        const text = def.inputs[input.name.replaceAll('.', '_')];
+        if (text) {
+            input.label = text.name;
+            input.localized_name = text.name;
+            input.tooltip = text.tooltip;
+        }
+    }
+    node.outputs?.forEach((output, index) => { const text = def.outputs[String(index)]; if (text) {
+        output.label = text.name;
+        output.localized_name = text.name;
+        output.tooltip = text.tooltip;
+    } });
+    const configure = node.widgets?.find(w => w.name === 'wylon_configuration');
+    if (configure)
+        configure.label = t('configureNode');
+    node.setDirtyCanvas?.(true, true);
+}
+function bindNodeText(node) {
     if (!node.comfyClass?.startsWith('Wylon'))
         return;
-    node.addWidget?.('button', t('configureNode'), null, () => { void showDialog(); }, { serialize: false });
+    nodes.add(new WeakRef(node));
+    translateNode(node);
+    const original = node.onConnectionsChange;
+    node.onConnectionsChange = function (...args) { const result = original?.apply(this, args); queueMicrotask(() => translateNode(node)); return result; };
+}
+async function changeLocale(setting) {
+    const revision = ++localeRevision;
+    const next = languageFor(setting, navigator.language);
+    if (next === locale && Object.keys(strings).length)
+        return;
+    const response = await fetch(new URL(`./locales/${next}.json`, import.meta.url));
+    const nextStrings = await response.json();
+    if (revision !== localeRevision)
+        return;
+    const previous = strings;
+    strings = nextStrings;
+    locale = next;
+    // Relabel existing text nodes in place: the password input and its value never move.
+    if (dialog) {
+        const text = document.createTreeWalker(dialog, 4);
+        while (text.nextNode()) {
+            const node = text.currentNode;
+            for (const [key, value] of Object.entries(previous)) {
+                if (typeof value === 'string' && node.nodeValue === value) {
+                    node.nodeValue = t(key);
+                    break;
+                }
+            }
+        }
+        const input = dialog.querySelector('input[type=password]');
+        if (input)
+            input.placeholder = t('apiKeyPlaceholder');
+        renderLive();
+        if (dialog.open)
+            void refreshMetadata();
+    }
+    for (const ref of nodes) {
+        const node = ref.deref();
+        if (node)
+            translateNode(node);
+        else
+            nodes.delete(ref);
+    }
+}
+function bindConfiguration(node) {
+    if (!node.comfyClass?.startsWith('Wylon') || node.comfyClass === 'WylonReferenceVideoURL')
+        return;
+    const widget = node.addWidget?.('button', 'wylon_configuration', null, () => { void showDialog(); }, { serialize: false });
+    if (widget) {
+        widget.label = t('configureNode');
+        widget.serialize = false;
+    }
+}
+function guardGraphLoads() {
+    // The host isolates extension-hook errors; preflight its public entry point
+    // before it cleans the canvas or registers subgraphs.
+    const original = app.loadGraphData;
+    app.loadGraphData = function (...args) {
+        try {
+            migrateWorkflow(args[0]);
+        }
+        catch (error) {
+            const notice = element('dialog', undefined, 'wylon-panel');
+            notice.setAttribute('role', 'alertdialog');
+            const heading = element('h2', t('workflowRejected'));
+            const message = element('p', error instanceof Error ? error.message : String(error));
+            notice.append(heading, message, button(t('close'), () => { notice.close(); notice.remove(); }));
+            document.body.append(notice);
+            notice.showModal();
+            return Promise.reject(error);
+        }
+        return original.apply(this, args);
+    };
 }
 function bindImageNode(node) {
     if (node.comfyClass !== 'WylonGenerateImage')
@@ -260,13 +383,17 @@ function bindImageNode(node) {
 }
 app.registerExtension({
     name: 'Wylon.Controls',
-    commands: [{ id: 'Wylon.ShowTasks', label: 'Wylon tasks / Wylon 任务', function: () => { void showDialog(); } }],
+    commands: [{ id: 'Wylon.ShowTasks', label: 'Wylon tasks and configuration', function: () => { void showDialog(); } }],
     menuCommands: [{ path: ['Wylon'], commands: ['Wylon.ShowTasks'] }],
     async init() {
-        locale = languageFor(app.extensionManager?.setting?.get('Comfy.Locale') ?? app.ui?.settings?.getSettingValue('Comfy.Locale'), navigator.language);
-        const [localeResponse, capResponse] = await Promise.all([fetch(new URL(`./locales/${locale}.json`, import.meta.url)), fetch(new URL('./model-capabilities.json', import.meta.url))]);
-        strings = await localeResponse.json();
+        guardGraphLoads();
+        localeSetting = app.extensionManager?.setting?.get('Comfy.Locale') ?? app.ui?.settings?.getSettingValue('Comfy.Locale');
+        const [i18n, capResponse] = await Promise.all([api.fetchApi('/i18n'), fetch(new URL('./model-capabilities.json', import.meta.url))]);
+        native = await i18n.json();
         capabilities = await capResponse.json();
+        await changeLocale(localeSetting);
+        app.ui?.settings?.addEventListener('Comfy.Locale.change', (event) => { localeSetting = event.detail.value; void changeLocale(localeSetting); });
+        globalThis.addEventListener?.('languagechange', () => { void changeLocale(localeSetting); });
         const sheet = element('link');
         sheet.rel = 'stylesheet';
         sheet.href = new URL('./wylon.css', import.meta.url).href;
@@ -278,8 +405,9 @@ app.registerExtension({
             live.delete(live.keys().next().value); renderLive(); if (status.status === 'downloaded' && dialog?.open)
             void refreshMetadata(); });
     },
-    nodeCreated(node) { bindImageNode(node); bindConfiguration(node); },
+    nodeCreated(node) { bindImageNode(node); bindConfiguration(node); bindNodeText(node); },
     loadedGraphNode(node) {
+        translateNode(node);
         // Workflows restore widgets after nodeCreated; preserve valid model-specific values.
         if (node.comfyClass === 'WylonGenerateImage') {
             const model = node.widgets?.find(w => w.name === 'model');

@@ -1,5 +1,6 @@
 """Request builders shared by nodes; presets come from the shipped capability file."""
 import base64
+from dataclasses import dataclass
 import ipaddress
 import json
 import re
@@ -48,6 +49,24 @@ def validate_media_url(url: str, kind: str) -> str:
     return url
 
 
+@dataclass(frozen=True)
+class ReferenceVideoBundle:
+    urls: tuple[str, ...]
+
+    def __post_init__(self):
+        validate_reference_video_bundle(self)
+
+
+def validate_reference_video_bundle(value):
+    if not isinstance(value, ReferenceVideoBundle) or type(getattr(value, 'urls', None)) is not tuple:
+        raise ValueError('reference_videos requires a WYLON_REFERENCE_VIDEO value from Wylon Reference Video URL')
+    if len(value.urls) > 3:
+        raise ValueError('At most 3 reference video URLs')
+    for url in value.urls:
+        validate_media_url(url, 'video')
+    return value.urls
+
+
 def _text(value, name, required=False):
     if not isinstance(value, str) or (required and not value.strip()):
         raise ValueError(f'{name} must be a nonempty string' if required else f'{name} must be a string')
@@ -82,15 +101,24 @@ def _extra(payload, extra, kind):
         payload[key] = value
 
 
-def build_image_request(model, prompt, size='server_default', mode='async', negative_prompt='', seed=-1, extra=None):
-    if model not in IMAGE_MODELS:
+def validate_image_parameters(parameters):
+    """Validate resolved image widgets; defer model-specific size checks for links."""
+    if 'model' in parameters and parameters['model'] not in IMAGE_MODELS:
         raise ValueError('Unsupported image model')
-    _text(prompt, 'prompt', True)
-    _text(negative_prompt, 'negative_prompt')
+    if 'prompt' in parameters:
+        _text(parameters['prompt'], 'prompt', True)
+    if 'negative_prompt' in parameters:
+        _text(parameters['negative_prompt'], 'negative_prompt')
+    if 'size' in parameters and parameters['size'] != 'server_default':
+        models = [parameters['model']] if 'model' in parameters else IMAGE_MODELS
+        if not any(parameters['size'] in IMAGE_MODELS[model]['sizes'] for model in models):
+            raise ValueError('Unsupported size for selected image model')
+
+
+def build_image_request(model, prompt, size='server_default', mode='async', negative_prompt='', seed=-1, extra=None):
+    validate_image_parameters({'model': model, 'prompt': prompt, 'size': size, 'negative_prompt': negative_prompt})
     if mode not in ('async', 'sync'):
         raise ValueError('mode must be sync or async')
-    if size != 'server_default' and size not in IMAGE_MODELS[model]['sizes']:
-        raise ValueError('Unsupported size for selected image model')
     payload = {'model': model, 'prompt': prompt, 'n': 1}
     if mode == 'async':
         payload['type'] = 'image'
@@ -112,16 +140,43 @@ def build_image_request(model, prompt, size='server_default', mode='async', nega
     return payload
 
 
+def validate_video_parameters(model, parameters, *, has_frames=False):
+    """Validate supplied scalar fields without inspecting or encoding media.
+
+    Queue validation may omit unresolved linked fields. Request construction
+    supplies every scalar, so the same rules apply after links resolve.
+    """
+    if 'prompt' in parameters:
+        _text(parameters['prompt'], 'prompt', True)
+    if 'negative_prompt' in parameters:
+        _text(parameters['negative_prompt'], 'negative_prompt')
+    if 'duration' in parameters:
+        duration = parameters['duration']
+        if type(duration) is not int or duration not in CAPABILITIES['video']['durations']:
+            raise ValueError('duration must be an integer from 5 to 15 seconds')
+    if 'resolution' in parameters and parameters['resolution'] != '768p':
+        raise ValueError('Unsupported resolution')
+    if 'ratio' in parameters:
+        ratio = parameters['ratio']
+        adaptive = ratio == 'adaptive' and model == 'MiniMaxAI/MiniMax-H3' and has_frames
+        if ratio not in CAPABILITIES['video']['ratios'] and ratio != 'server_default' and not adaptive:
+            raise ValueError('Unsupported ratio; adaptive ratio requires an H3 first or last frame')
+    if 'seed' in parameters:
+        seed = parameters['seed']
+        _seed({}, seed)
+        if seed > 4294967295:
+            raise ValueError('seed must not exceed 4294967295')
+    if 'extra' in parameters:
+        _extra({}, parameters['extra'], 'video')
+
+
 def build_video_request(model, prompt, images=(), videos=(), audios=(), first_frame=None, last_frame=None, duration=5, resolution='768p', ratio='16:9', negative_prompt='', seed=-1, extra=None):
     if model not in VIDEO_MODELS:
         raise ValueError('Unsupported video model')
-    _text(prompt, 'prompt', True)
-    _text(negative_prompt, 'negative_prompt')
-    if type(duration) is not int or duration not in CAPABILITIES['video']['durations']:
-        raise ValueError('duration must be an integer from 5 to 15 seconds')
-    adaptive = ratio == 'adaptive' and model == 'MiniMaxAI/MiniMax-H3' and (first_frame is not None or last_frame is not None)
-    if resolution != '768p' or (ratio not in CAPABILITIES['video']['ratios'] and ratio != 'server_default' and not adaptive):
-        raise ValueError('Unsupported resolution or ratio')
+    validate_video_parameters(model, {
+        'prompt': prompt, 'negative_prompt': negative_prompt, 'duration': duration,
+        'resolution': resolution, 'ratio': ratio, 'seed': seed, 'extra': extra,
+    }, has_frames=first_frame is not None or last_frame is not None)
     for values in (images, videos, audios):
         if not isinstance(values, (tuple, list)):
             raise ValueError('Reference media must be lists of URLs')

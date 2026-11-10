@@ -23,11 +23,12 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_NAME = 'ComfyUI-Wylon'
 WORKFLOW_NAME = 'Wylon-ComfyTV-Workflows'
-VERSION = '0.2.0'
+VERSION = '0.3.0'
 WORKFLOWS = (
     'image/wylon-qwen-2512', 'image/wylon-qwen-2-1',
     'video/wylon-h3-text', 'video/wylon-h3-first-last', 'video/wylon-ref2va',
 )
+EXISTING_TASK_EXAMPLES = ('wylon-get-image-task-result', 'wylon-get-video-task-result')
 PLUGIN_FILES = (
     '__init__.py', 'pyproject.toml', 'requirements.txt',
     'README.md', 'README.zh-CN.md', 'CHANGELOG.md', 'CHANGELOG.zh-CN.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md',
@@ -37,10 +38,12 @@ PLUGIN_FILES = (
     'wylon/__init__.py', 'wylon/api.py', 'wylon/client.py', 'wylon/contracts.py',
     'wylon/credentials.py', 'wylon/journal.py', 'wylon/media.py', 'wylon/nodes.py',
     'wylon/results.py', 'wylon/routes.py', 'wylon/runtime.py',
-    'web/core.js', 'web/wylon.js', 'web/wylon.css', 'web/model-capabilities.json',
+    'web/core.js', 'web/migration.js', 'web/wylon.js', 'web/wylon.css', 'web/model-capabilities.json',
     'web/locales/en.json', 'web/locales/zh.json',
     'locales/en.json', 'locales/zh.json', 'shared/model-capabilities.json',
-    *(f'example_workflows/{Path(stem).name}.json' for stem in WORKFLOWS),
+    'locales/en/nodeDefs.json', 'locales/zh/nodeDefs.json',
+    'locales/en/commands.json', 'locales/zh/commands.json',
+    *(f'example_workflows/{Path(stem).name}.json' for stem in (*WORKFLOWS, *EXISTING_TASK_EXAMPLES)),
 )
 WORKFLOW_FILES = (
     'README.md', 'README.zh-CN.md', 'manifest.json', 'LICENSE', 'THIRD_PARTY_NOTICES.md',

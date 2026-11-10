@@ -1,4 +1,4 @@
-"""Internal Wylon extension. Host imports are deferred for standalone tooling."""
+"""Wylon extension. Host imports are deferred for standalone tooling."""
 WEB_DIRECTORY = './web'
 
 

@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-wylon"
-version = "0.2.0"
+version = "0.3.0"
 description = "Wylon image and video nodes for ComfyUI"
 license = "MIT"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]

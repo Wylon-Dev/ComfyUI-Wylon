@@ -13,9 +13,9 @@
   "loading": "正在检查连接…",
   "failedLoad": "无法读取 Wylon 信息。请检查 ComfyUI 服务器日志，然后刷新。",
   "copy": "复制任务 ID",
-  "copied": "任务 ID 已复制。将其粘贴到对应的 Wylon 恢复任务节点，即可查询原任务。",
+  "copied": "任务 ID 已复制。将此视频任务或历史异步图片任务 ID 粘贴到对应的 Wylon 获取已有任务结果节点，即可查询原任务。",
   "copyFailed": "无法自动复制。请选中下方任务 ID 并手动复制。",
-  "resume": "恢复中断任务：将 ID 填入 Wylon 恢复图像任务或恢复视频任务节点。重新运行生成节点会创建新的计费任务。",
+  "resume": "获取已有任务结果：将历史异步图片或视频任务 ID 填入对应的“Wylon 获取已有任务结果”节点。图片生成固定同步，不返回任务 ID；视频提交后等待结果。仅视频提供 seed 和本地下次运行种子策略。重新运行生成节点会发送新的生成请求，可能产生费用。",
   "status": {
     "submitting": "正在提交",
     "queued": "排队中",
@@ -59,8 +59,9 @@
   "generatedImage": "Wylon 生成的图片",
   "generatedVideo": "Wylon 生成的视频",
   "openResult": "打开原始结果",
-  "noResults": "尚无本地结果。运行“Wylon 生图”或视频节点，结果会在节点和这里显示。已有任务可用恢复节点下载。",
+  "noResults": "暂无本地结果。运行 Wylon 图片或视频节点，或将视频任务 ID、历史异步图片任务 ID 填入对应的获取已有任务结果节点。",
   "connectionFailed": "暂时无法验证连接。请检查 API Key 和 Wylon 服务状态，配置状态不等于验证成功。",
   "keyVerified": "API Key 已应用，连接验证成功。",
-  "moreAvailable": "当前显示第一页；更多记录可通过分页 API 获取。"
+  "moreAvailable": "当前显示第一页；更多记录可通过分页 API 获取。",
+  "workflowRejected": "Wylon 工作流无法加载"
 }

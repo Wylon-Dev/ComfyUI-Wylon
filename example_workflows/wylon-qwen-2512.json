@@ -43,11 +43,7 @@
         "Qwen/Qwen-Image-2512",
         "A quiet harbor at sunrise",
         "server_default",
-        "async",
-        "",
-        -1,
-        "fixed",
-        "{}"
+        ""
       ]
     },
     {

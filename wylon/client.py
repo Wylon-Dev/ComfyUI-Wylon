@@ -101,12 +101,13 @@ class WylonClient:
             await self._session.close()
             self._session = None
 
-    async def _request(self, method, path, payload=None, task_id=None, response_limit=1024 * 1024):
+    async def _request(self, method, path, payload=None, task_id=None, response_limit=1024 * 1024, *, timeout=None):
         if self._session is None:
             raise WylonError('Use WylonClient as an async context manager', task_id=task_id)
+        request_options = {} if timeout is None else {'timeout': aiohttp.ClientTimeout(total=timeout)}
         for attempt in range(3 if method == 'GET' else 1):
             try:
-                async with self._session.request(method, self.base_url + path, json=payload, headers={'Authorization': 'Bearer ' + self.api_key}, allow_redirects=False) as response:
+                async with self._session.request(method, self.base_url + path, json=payload, headers={'Authorization': 'Bearer ' + self.api_key}, allow_redirects=False, **request_options) as response:
                     if method == 'GET' and response.status in (408, 429, 500, 502, 503, 504) and attempt < 2:
                         await _sleep(0.2 * (2 ** attempt))
                         continue
@@ -142,7 +143,7 @@ class WylonClient:
         return await self._request('POST', '/contents/generations/tasks', payload)
 
     async def generate_sync(self, payload):
-        return await self._request('POST', '/images/generations', payload, response_limit=96 * 1024 * 1024)
+        return await self._request('POST', '/images/generations', payload, response_limit=96 * 1024 * 1024, timeout=180)
 
     async def get_task(self, task_id):
         if not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{1,200}', task_id):
@@ -161,13 +162,18 @@ class WylonClient:
             _check_interrupt(interrupt, task_id)
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise WylonError('Polling timed out; resume this task later', task_id=task_id)
+                raise WylonError('Polling timed out; use Wylon Get Task Result later', task_id=task_id)
             try:
                 task = await asyncio.wait_for(_interruptible(self.get_task(task_id), interrupt, task_id), timeout=remaining)
             except asyncio.TimeoutError:
-                raise WylonError('Polling timed out; resume this task later', task_id=task_id) from None
-            if task.get('type') != kind or task.get('id') != task_id:
-                raise WylonError('Task identity or media kind does not match', task_id=task_id)
+                raise WylonError('Polling timed out; use Wylon Get Task Result later', task_id=task_id) from None
+            if task.get('id') != task_id:
+                raise WylonError('Task identity does not match the requested task ID', task_id=task_id)
+            remote_kind = task.get('type')
+            if remote_kind != kind:
+                if remote_kind in ('image', 'video'):
+                    raise WylonError(f'Task is {remote_kind}; use Wylon Get {remote_kind.title()} Task Result', task_id=task_id)
+                raise WylonError('Task media kind is missing or unsupported; expected ' + kind, task_id=task_id)
             if on_status is not None:
                 on_status(task)
             _check_interrupt(interrupt, task_id)
@@ -180,7 +186,7 @@ class WylonClient:
                 if task.get('file_status') == 'available':
                     return task
                 if not task.get('file_status'):
-                    raise WylonError('Task succeeded but result availability is missing; resume later', task_id=task_id)
+                    raise WylonError('Task succeeded but result availability is missing; use Wylon Get Task Result later', task_id=task_id)
             if status not in ('queued', 'running', 'succeeded'):
                 raise WylonError('Unknown task status', task_id=task_id)
             await _sleep(min(interval, max(0, deadline - time.monotonic())), interrupt, task_id)
