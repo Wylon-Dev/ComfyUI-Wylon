@@ -91,7 +91,7 @@ For video or an existing historical asynchronous image task, after interrupted w
 - **Codec/download error:** verify disk space, network reachability and PyAV in the actual host environment. Preserve the task ID; for a transient failure, try the matching Get Task Result node with the correct account while the result remains available. If the error reports the output download limit (64 MiB per image / 1 GiB per video), retrying or resuming will not bypass it. Querying cannot restore an expired result; manually requesting another generation is a new potentially paid request.
 - **Configuration blocked behind a proxy:** configuration mutations require a browser same-origin request. Ensure the proxy preserves a consistent browser/server origin; do not disable checks to work around it.
 
-Results download to `<ComfyUI output directory>/wylon/`, normally `ComfyUI/output/wylon/`. The panel shows recent local results. Asset downloads do not receive the API key. Native Save Image/Save Video can create additional files in user-selected output locations.
+Results download to `<ComfyUI output directory>/wylon/`, normally `ComfyUI/output/wylon/`. The panel shows recent local results. Asset requests omit the API Authorization header. Before connecting, the client rejects provider-result and redirect URLs containing the active API key in the raw URL, canonical request URL or bounded repeated percent-decoded forms. Native Save Image/Save Video can create additional files in user-selected output locations.
 
 ## Update and uninstall
 

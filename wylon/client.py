@@ -7,8 +7,9 @@ import re
 import tempfile
 import time
 from pathlib import Path
-from urllib.parse import quote, urljoin, urlsplit
+from urllib.parse import quote, unquote, urljoin, urlsplit
 import aiohttp
+from yarl import URL
 from .contracts import validate_media_url
 
 
@@ -192,7 +193,21 @@ class WylonClient:
             await _sleep(min(interval, max(0, deadline - time.monotonic())), interrupt, task_id)
             interval = min(5.0, interval * 1.5)
 
+    def _check_asset_url_credential(self, url):
+        # Check before parsers can discard controls, including redirect Locations.
+        if not isinstance(url, str) or any(ord(c) < 32 or ord(c) == 127 for c in url):
+            raise WylonError('Unsafe asset URL')
+        # URL uses the same canonicalization as aiohttp's request builder. Inspect
+        # decoded copies only: signed URLs must reach transport without rewriting.
+        for candidate in (url, str(URL(url))):
+            for depth in range(4):
+                if self.api_key in candidate:
+                    raise WylonError('Unsafe asset URL')
+                if depth < 3:
+                    candidate = unquote(candidate)
+
     def _validate_asset_url(self, url):
+        self._check_asset_url_credential(url)
         # Only an explicitly configured loopback API may download from that same origin.
         local = _local_origin(self.base_url)
         parsed = urlsplit(url)
@@ -218,7 +233,9 @@ class WylonClient:
                         if response.status in (301, 302, 303, 307, 308):
                             if redirects == 5 or not response.headers.get('Location'):
                                 raise WylonError('Asset redirect limit reached')
-                            url = urljoin(url, response.headers['Location'])
+                            location = response.headers['Location']
+                            self._check_asset_url_credential(location)
+                            url = urljoin(url, location)
                             continue
                         if response.status != 200:
                             raise WylonError(f'Asset download failed (HTTP {response.status})')

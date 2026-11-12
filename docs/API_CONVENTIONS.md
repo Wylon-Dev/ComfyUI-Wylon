@@ -2,7 +2,7 @@
 
 [简体中文](API_CONVENTIONS.zh-CN.md) · [Usage](USAGE.md)
 
-ComfyUI-Wylon 0.3.1 follows the supplied service conventions for its own HTTP API. Names and JSON fields use snake_case and US English; collections are plural. No database, Kafka, object store or gRPC service is introduced.
+ComfyUI-Wylon 0.3.2 follows the supplied service conventions for its own HTTP API. Names and JSON fields use snake_case and US English; collections are plural. No database, Kafka, object store or gRPC service is introduced.
 
 ## Owned routes
 

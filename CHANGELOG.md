@@ -2,6 +2,10 @@
 
 [简体中文](CHANGELOG.zh-CN.md)
 
+## 0.3.2
+
+- Rejects provider-result and redirect asset URLs containing the active API key before downloading, checking the raw URL, canonical request URL and bounded repeated percent decoding. Ordinary public signed asset URLs remain supported.
+
 ## 0.3.1
 
 - Fixes task ID validation to accept legitimate long `task-`, `mask-` and `risk-` identifiers while continuing to block credential-bearing task IDs before recording or querying them.

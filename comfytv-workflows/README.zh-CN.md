@@ -3,7 +3,7 @@
 <h1>Wylon ComfyTV 工作流</h1>
 <p><strong>可直接导入 ComfyTV 的 Wylon 图像与视频工作流。</strong></p>
 
-[![版本](https://img.shields.io/badge/version-0.3.1-blue)](manifest.json)
+[![版本](https://img.shields.io/badge/version-0.3.2-blue)](manifest.json)
 [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![ComfyTV](https://img.shields.io/badge/ComfyTV-1.13.1-222222)](https://github.com/jtydhr88/ComfyTV/tree/v1.13.1)
 
@@ -22,7 +22,7 @@
 
 **ComfyTV 与 ComfyUI-Wylon 必须运行在同一台 ComfyUI 服务器。** 本包复用该服务器的节点和凭据，无需额外节点副本、npm 安装或本地模型权重。
 
-宿主版本：**ComfyUI v0.44.0 + ComfyTV v1.13.1 + ComfyUI-Wylon v0.3.1**。[清单](manifest.json)记录文件配对、节点 ID 及兼容信息。
+宿主版本：**ComfyUI v0.44.0 + ComfyTV v1.13.1 + ComfyUI-Wylon v0.3.2**。[清单](manifest.json)记录文件配对、节点 ID 及兼容信息。
 
 | 平台 | ComfyUI 安装方式 |
 | --- | --- |
@@ -57,7 +57,7 @@ Copy-Item .\workflows\video\*.json "$ComfyUIRoot\user\comfytv\workflows\video\"
 
 将 `$ComfyUIRoot` 替换为实际宿主路径，例如便携版的 `C:\AI\ComfyUI_windows_portable\ComfyUI`。
 
-如需本地构建，在**仓库根目录**使用开发工具链（Node.js 22.23.x、npm 与 Python）运行 `npm run package`，或用选定 Python 执行 `python scripts/package.py`，会生成独立的 `Wylon-ComfyTV-Workflows-0.3.1.zip`。解压后的包根目录为 `Wylon-ComfyTV-Workflows`，按上方步骤复制文件即可。构建详情见[贡献指南](https://github.com/wylon-cloud/comfyui-wylon/blob/main/CONTRIBUTING.zh-CN.md)。
+如需本地构建，在**仓库根目录**使用开发工具链（Node.js 22.23.x、npm 与 Python）运行 `npm run package`，或用选定 Python 执行 `python scripts/package.py`，会生成独立的 `Wylon-ComfyTV-Workflows-0.3.2.zip`。解压后的包根目录为 `Wylon-ComfyTV-Workflows`，按上方步骤复制文件即可。构建详情见[贡献指南](https://github.com/wylon-cloud/comfyui-wylon/blob/main/CONTRIBUTING.zh-CN.md)。
 
 工作流包放入 ComfyTV 用户工作流目录；只有 ComfyUI-Wylon 插件放入 `custom_nodes`。
 
