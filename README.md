@@ -3,7 +3,7 @@
 <h1>ComfyUI-Wylon</h1>
 <p><strong>Wylon image and video generation, connected to your ComfyUI workflows.</strong></p>
 
-[![Version](https://img.shields.io/badge/version-0.3.0-blue)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.1-blue)](CHANGELOG.md)
 [![MIT License](https://img.shields.io/github/license/wylon-cloud/comfyui-wylon)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-0.44.0-222222)](https://github.com/Comfy-Org/ComfyUI/tree/v0.44.0)
@@ -77,7 +77,7 @@ git clone https://github.com/wylon-cloud/comfyui-wylon.git .\ComfyUI\custom_node
 2. Extract it, rename `comfyui-wylon-main` to `ComfyUI-Wylon`, and place that folder directly inside `ComfyUI/custom_nodes/`. The result must be `ComfyUI/custom_nodes/ComfyUI-Wylon/__init__.py`.
 3. Run the dependency command above for your installation, then **restart ComfyUI and refresh the browser page**.
 
-A locally built `ComfyUI-Wylon-0.3.0.zip` already contains the correctly named plugin folder. To build that runtime archive and the separate `Wylon-ComfyTV-Workflows-0.3.0.zip` from a source checkout, run `npm run package` (developer tooling) or `python scripts/package.py` with the selected Python; see [CONTRIBUTING](CONTRIBUTING.md) for build and validation steps.
+A locally built `ComfyUI-Wylon-0.3.1.zip` already contains the correctly named plugin folder. To build that runtime archive and the separate `Wylon-ComfyTV-Workflows-0.3.1.zip` from a source checkout, run `npm run package` (developer tooling) or `python scripts/package.py` with the selected Python; see [CONTRIBUTING](CONTRIBUTING.md) for build and validation steps.
 
 ## 🔑 Configure your API key
 

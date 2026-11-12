@@ -2,7 +2,7 @@
 
 [English](API_CONVENTIONS.md) · [使用指南](USAGE.zh-CN.md)
 
-ComfyUI-Wylon 0.3.0 的自有 HTTP API 遵循提供的服务规范：路径与 JSON 字段使用 snake_case、美式英语，集合使用复数。本插件不新增数据库、Kafka、对象存储或 gRPC 服务。
+ComfyUI-Wylon 0.3.1 的自有 HTTP API 遵循提供的服务规范：路径与 JSON 字段使用 snake_case、美式英语，集合使用复数。本插件不新增数据库、Kafka、对象存储或 gRPC 服务。
 
 ## 自有接口
 
