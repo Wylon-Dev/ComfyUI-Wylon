@@ -3,7 +3,7 @@
 <h1>Wylon ComfyTV Workflows</h1>
 <p><strong>Ready-to-import Wylon image and video workflows for ComfyTV.</strong></p>
 
-[![Version](https://img.shields.io/badge/version-0.3.1-blue)](manifest.json)
+[![Version](https://img.shields.io/badge/version-0.3.2-blue)](manifest.json)
 [![MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![ComfyTV](https://img.shields.io/badge/ComfyTV-1.13.1-222222)](https://github.com/jtydhr88/ComfyTV/tree/v1.13.1)
 
@@ -22,7 +22,7 @@ Use Qwen image generation and MiniMax H3 video generation in ComfyTV stages. Thi
 
 **ComfyTV and ComfyUI-Wylon must run on the same ComfyUI server.** This pack reuses that server's nodes and credentials. It needs no additional node copies, npm installation or local model weights.
 
-Host versions: **ComfyUI v0.44.0 + ComfyTV v1.13.1 + ComfyUI-Wylon v0.3.1**. The [manifest](manifest.json) records the file pairs, node IDs and compatibility details.
+Host versions: **ComfyUI v0.44.0 + ComfyTV v1.13.1 + ComfyUI-Wylon v0.3.2**. The [manifest](manifest.json) records the file pairs, node IDs and compatibility details.
 
 | Platform | ComfyUI installation method |
 | --- | --- |
@@ -57,7 +57,7 @@ Copy-Item .\workflows\video\*.json "$ComfyUIRoot\user\comfytv\workflows\video\"
 
 Replace `$ComfyUIRoot` with the real host path; for example `C:\AI\ComfyUI_windows_portable\ComfyUI` for portable.
 
-For a local build, run `npm run package` from the **repository root** using the developer toolchain (Node.js 22.23.x + npm and Python), or invoke `python scripts/package.py` with your selected Python. It produces the separate `Wylon-ComfyTV-Workflows-0.3.1.zip`; after extraction, the pack root is `Wylon-ComfyTV-Workflows`. Apply the same folder-copy steps above. Build details are in [CONTRIBUTING](https://github.com/wylon-cloud/comfyui-wylon/blob/main/CONTRIBUTING.md).
+For a local build, run `npm run package` from the **repository root** using the developer toolchain (Node.js 22.23.x + npm and Python), or invoke `python scripts/package.py` with your selected Python. It produces the separate `Wylon-ComfyTV-Workflows-0.3.2.zip`; after extraction, the pack root is `Wylon-ComfyTV-Workflows`. Apply the same folder-copy steps above. Build details are in [CONTRIBUTING](https://github.com/wylon-cloud/comfyui-wylon/blob/main/CONTRIBUTING.md).
 
 The workflow pack belongs in ComfyTV's user workflow folders. Only the ComfyUI-Wylon plugin belongs in `custom_nodes`.
 

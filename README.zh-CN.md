@@ -3,7 +3,7 @@
 <h1>ComfyUI-Wylon</h1>
 <p><strong>将 Wylon 图像与视频生成接入你的 ComfyUI 工作流。</strong></p>
 
-[![版本](https://img.shields.io/badge/version-0.3.1-blue)](CHANGELOG.zh-CN.md)
+[![版本](https://img.shields.io/badge/version-0.3.2-blue)](CHANGELOG.zh-CN.md)
 [![MIT 许可证](https://img.shields.io/github/license/wylon-cloud/comfyui-wylon)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-0.44.0-222222)](https://github.com/Comfy-Org/ComfyUI/tree/v0.44.0)
@@ -77,7 +77,7 @@ git clone https://github.com/wylon-cloud/comfyui-wylon.git .\ComfyUI\custom_node
 2. 解压，将 `comfyui-wylon-main` 重命名为 `ComfyUI-Wylon`，直接放入 `ComfyUI/custom_nodes/`。最终路径应为 `ComfyUI/custom_nodes/ComfyUI-Wylon/__init__.py`。
 3. 根据安装方式执行上方依赖命令，然后**重启 ComfyUI 并刷新浏览器页面**。
 
-本地构建的 `ComfyUI-Wylon-0.3.1.zip` 已包含正确命名的插件目录。在源码检出目录执行 `npm run package`（开发工具链）或使用选定 Python 执行 `python scripts/package.py`，可构建该运行时包与独立的 `Wylon-ComfyTV-Workflows-0.3.1.zip`；构建与检查步骤见[贡献指南](CONTRIBUTING.zh-CN.md)。
+本地构建的 `ComfyUI-Wylon-0.3.2.zip` 已包含正确命名的插件目录。在源码检出目录执行 `npm run package`（开发工具链）或使用选定 Python 执行 `python scripts/package.py`，可构建该运行时包与独立的 `Wylon-ComfyTV-Workflows-0.3.2.zip`；构建与检查步骤见[贡献指南](CONTRIBUTING.zh-CN.md)。
 
 ## 🔑 配置 API Key
 

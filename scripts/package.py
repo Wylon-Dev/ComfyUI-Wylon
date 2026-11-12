@@ -23,7 +23,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_NAME = 'ComfyUI-Wylon'
 WORKFLOW_NAME = 'Wylon-ComfyTV-Workflows'
-VERSION = '0.3.1'
+VERSION = '0.3.2'
 WORKFLOWS = (
     'image/wylon-qwen-2512', 'image/wylon-qwen-2-1',
     'video/wylon-h3-text', 'video/wylon-h3-first-last', 'video/wylon-ref2va',
